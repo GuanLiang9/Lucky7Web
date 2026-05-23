@@ -217,7 +217,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
 
   useEffect(() => {
     if (visible) generate()
-  }, [visible, regenerateKey])
+  }, [visible, generate])
 
   if (!visible) return null
 
@@ -254,7 +254,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                 >
                   4D Numbers
                 </span>
-                <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>Next draw: Wed 25 May · Draw #4569</span>
+                <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>Next draw: Sun 24 May · Draw #4570</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {fourDNumbers.map((num, i) => (
@@ -297,7 +297,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                   TOTO Numbers
                 </span>
                 <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                  Jackpot S$3,200,000 · Next draw: Thu 26 May
+                  Jackpot S$3,200,000 · Next draw: Mon 25 May
                 </span>
               </div>
               <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} drawsToto={drawsToto} onUpdate={setTotoNumbers} />
