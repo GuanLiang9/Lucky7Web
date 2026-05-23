@@ -5,7 +5,7 @@ import { previousDraws4D, previousDrawsToto } from './previousDraws.js'
 
 export async function fetchResults() {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 8000)
+  const timeout = setTimeout(() => controller.abort(), 5000)
 
   try {
     const res = await fetch(API_URL, { signal: controller.signal })
