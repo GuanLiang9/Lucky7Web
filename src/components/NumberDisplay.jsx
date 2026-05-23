@@ -74,6 +74,12 @@ function FourDSet({ number, setIndex, label, mood, dreams, onUpdate }) {
   )
 }
 
+const TOTO_TOP3 = [
+  { icon: '🥇', label: 'Top Pick 福', color: { bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.55)', text: '#fbbf24', size: 68 } },
+  { icon: '🥈', label: 'Top Pick 发', color: { bg: 'rgba(203,213,225,0.12)', border: 'rgba(203,213,225,0.4)',  text: '#cbd5e1', size: 60 } },
+  { icon: '🥉', label: 'Top Pick 财', color: { bg: 'rgba(217,119,6,0.15)',  border: 'rgba(217,119,6,0.45)',   text: '#d97706', size: 60 } },
+]
+
 function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
   const [swapping, setSwapping] = useState(null)
 
@@ -87,28 +93,67 @@ function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
     }, 400)
   }
 
+  const top3   = numbers.slice(0, 3)
+  const others = numbers.slice(3)
+
   return (
-    <div className="glass-strong rounded-2xl p-6">
+    <div className="glass-strong rounded-2xl p-5">
+      {/* Top 3 picks */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {top3.map((n, i) => {
+          const meta = TOTO_TOP3[i]
+          return (
+            <button
+              key={i}
+              onClick={() => handleSwap(i)}
+              className="flex flex-col items-center rounded-2xl p-4 transition-all active:scale-95"
+              style={{
+                background: meta.color.bg,
+                border: `1px solid ${meta.color.border}`,
+                opacity: swapping === i ? 0.4 : 1,
+                animation: swapping === i ? 'spin 0.4s linear' : undefined,
+              }}
+              title="Click to swap"
+            >
+              <span className="text-base mb-1">{meta.icon}</span>
+              <span
+                className="font-black text-3xl leading-none mb-2"
+                style={{ color: meta.color.text, fontVariantNumeric: 'tabular-nums' }}
+              >
+                {n}
+              </span>
+              <span className="text-xs uppercase tracking-widest" style={{ color: 'rgba(250,245,240,0.3)' }}>
+                {meta.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Remaining 3 picks */}
       <div
-        className="text-xs uppercase tracking-widest mb-6 text-center"
-        style={{ color: 'rgba(251,191,36,0.5)' }}
+        className="rounded-xl p-3 mb-4"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
       >
-        Your Lucky Numbers
+        <div className="text-xs uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(251,191,36,0.4)' }}>
+          Additional Picks
+        </div>
+        <div className="flex justify-center gap-3">
+          {others.map((n, i) => (
+            <button
+              key={i + 3}
+              onClick={() => handleSwap(i + 3)}
+              className="toto-ball w-12 h-12 rounded-full font-black text-lg flex items-center justify-center"
+              style={swapping === i + 3 ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
+              title="Click to swap"
+            >
+              <span className="gradient-text-gold">{n}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex flex-wrap gap-3 justify-center mb-5">
-        {numbers.map((n, i) => (
-          <button
-            key={i}
-            onClick={() => handleSwap(i)}
-            className="toto-ball w-14 h-14 rounded-full font-black text-xl flex items-center justify-center"
-            style={swapping === i ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
-            title="Click to swap"
-          >
-            <span className="gradient-text-gold">{n}</span>
-          </button>
-        ))}
-      </div>
-      <div className="text-xs text-center mb-4" style={{ color: 'rgba(250,245,240,0.25)' }}>
+
+      <div className="text-xs text-center mb-3" style={{ color: 'rgba(250,245,240,0.2)' }}>
         click any number to swap it
       </div>
       <div
