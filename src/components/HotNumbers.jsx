@@ -13,10 +13,15 @@ function computeHot4D(draws) {
 function computeHotToto(draws) {
   const freq = {}
   draws.forEach(d => {
-    (d.numbers||[]).forEach(n => { freq[n] = (freq[n] || 0) + 1 })
-    if (d.bonus) freq[d.bonus] = (freq[d.bonus] || 0) + 0.5
+    ;(d.numbers || []).forEach(n => {
+      if (n >= 1 && n <= 49) freq[n] = (freq[n] || 0) + 1
+    })
+    if (d.bonus >= 1 && d.bonus <= 49) freq[d.bonus] = (freq[d.bonus] || 0) + 0.5
   })
-  return Object.entries(freq).sort((a,b) => b[1]-a[1]).map(([n]) => parseInt(n))
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .map(([n]) => parseInt(n))
+    .filter(n => n >= 1 && n <= 49)
 }
 
 function Badge({ label, color }) {

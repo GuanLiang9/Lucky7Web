@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   generate4DNumbers,
   generateTotoNumbers,
   regenerateSingle4DDigit,
   regenerateSingleTotoNumber,
+  predictNumbers4D,
+  predictNumbersToto,
 } from '../utils/numberGenerator.js'
 
 function DigitCard({ digit, onRefresh, position }) {
@@ -52,16 +54,13 @@ function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) 
   const digits = number.split('')
 
   const handleDigitRefresh = (pos) => {
-    const updated = regenerateSingle4DDigit(number, pos, mood, dreams.map(d => d.seed), draws4D)
+    const updated = regenerateSingle4DDigit(number, pos, mood, dreams, draws4D)
     onUpdate(setIndex, updated)
   }
 
   return (
     <div className="glass-strong rounded-2xl p-4 text-center overflow-hidden">
-      <div
-        className="text-xs uppercase tracking-widest mb-4"
-        style={{ color: 'rgba(251,191,36,0.5)' }}
-      >
+      <div className="text-xs uppercase tracking-widest mb-4" style={{ color: 'rgba(251,191,36,0.5)' }}>
         {label}
       </div>
       <div className="flex gap-1.5 justify-center mb-3">
@@ -75,9 +74,9 @@ function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) 
 }
 
 const TOTO_TOP3 = [
-  { icon: '🥇', label: 'Top Pick 福', color: { bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.55)', text: '#fbbf24', size: 68 } },
-  { icon: '🥈', label: 'Top Pick 发', color: { bg: 'rgba(203,213,225,0.12)', border: 'rgba(203,213,225,0.4)',  text: '#cbd5e1', size: 60 } },
-  { icon: '🥉', label: 'Top Pick 财', color: { bg: 'rgba(217,119,6,0.15)',  border: 'rgba(217,119,6,0.45)',   text: '#d97706', size: 60 } },
+  { icon: '🥇', label: 'Top Pick 福', color: { bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.55)', text: '#fbbf24' } },
+  { icon: '🥈', label: 'Top Pick 发', color: { bg: 'rgba(203,213,225,0.12)', border: 'rgba(203,213,225,0.4)',  text: '#cbd5e1' } },
+  { icon: '🥉', label: 'Top Pick 财', color: { bg: 'rgba(217,119,6,0.15)',  border: 'rgba(217,119,6,0.45)',   text: '#d97706' } },
 ]
 
 function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
@@ -87,7 +86,7 @@ function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
     if (swapping !== null) return
     setSwapping(index)
     setTimeout(() => {
-      const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams.map(d => d.seed), drawsToto)
+      const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams, drawsToto)
       onUpdate(updated)
       setSwapping(null)
     }, 400)
@@ -98,7 +97,6 @@ function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
 
   return (
     <div className="glass-strong rounded-2xl p-5">
-      {/* Top 3 picks */}
       <div className="grid grid-cols-3 gap-2 mb-4">
         {top3.map((n, i) => {
           const meta = TOTO_TOP3[i]
@@ -122,19 +120,13 @@ function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
               >
                 {n}
               </span>
-              <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                {meta.label}
-              </span>
+              <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>{meta.label}</span>
             </button>
           )
         })}
       </div>
 
-      {/* Remaining 3 picks */}
-      <div
-        className="rounded-xl p-3 mb-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-      >
+      <div className="rounded-xl p-3 mb-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="text-xs uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(251,191,36,0.4)' }}>
           Additional Picks
         </div>
@@ -156,10 +148,7 @@ function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
       <div className="text-xs text-center mb-3" style={{ color: 'rgba(250,245,240,0.2)' }}>
         click any number to swap it
       </div>
-      <div
-        className="rounded-xl p-3 text-center"
-        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
-      >
+      <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}>
         <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
       </div>
     </div>
@@ -177,23 +166,137 @@ function GeneratingState() {
   return (
     <div className="text-center py-24">
       <div className="relative inline-block mb-6">
-        <div
-          className="text-7xl"
-          style={{ display: 'inline-block', animation: 'float 2s ease-in-out infinite' }}
-        >
+        <div className="text-7xl" style={{ display: 'inline-block', animation: 'float 2s ease-in-out infinite' }}>
           {symbols[frame]}
         </div>
-        {/* Ripple */}
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            border: '2px solid rgba(220,38,38,0.4)',
-            animation: 'ripple 1.5s ease-out infinite',
-          }}
-        />
+        <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(220,38,38,0.4)', animation: 'ripple 1.5s ease-out infinite' }} />
       </div>
       <div className="text-lg font-semibold" style={{ color: '#fbbf24' }}>Reading the cosmic signs...</div>
       <div className="mt-2 text-sm" style={{ color: 'rgba(250,245,240,0.3)' }}>Channelling your fortune</div>
+    </div>
+  )
+}
+
+function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
+  const hasMood = Boolean(mood)
+  const dreamCount = dreams?.length || 0
+  const influenced = hasMood || dreamCount > 0
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(99,62,180,0.06)', border: '1px solid rgba(139,92,246,0.18)' }}
+    >
+      {/* Header */}
+      <div
+        className="px-5 py-3.5 flex items-center gap-3"
+        style={{ borderBottom: '1px solid rgba(139,92,246,0.1)', background: 'rgba(99,62,180,0.06)' }}
+      >
+        <span className="text-base">🔮</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-bold" style={{ color: '#c4b5fd' }}>Prize Prediction · 奖号预测</div>
+          <div className="text-xs truncate" style={{ color: 'rgba(250,245,240,0.3)' }}>
+            {pred4D || predToto
+              ? `${pred4D?.drawsAnalyzed || predToto?.drawsAnalyzed || 0} draws analysed`
+              : 'Insufficient draw history'}
+            {influenced && (
+              <span style={{ color: 'rgba(196,181,253,0.6)' }}>
+                {hasMood ? ` · ${mood.emoji} ${mood.label}` : ''}
+                {dreamCount > 0 ? ` · ${dreamCount} dream${dreamCount > 1 ? 's' : ''}` : ''}
+              </span>
+            )}
+          </div>
+        </div>
+        <span
+          className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+          style={{ background: 'rgba(139,92,246,0.12)', color: 'rgba(196,181,253,0.8)', border: '1px solid rgba(139,92,246,0.25)' }}
+        >
+          {influenced ? 'Personalised' : 'Statistical'}
+        </span>
+      </div>
+
+      {/* 4D prediction */}
+      {pred4D && (gameType === '4d' || gameType === 'both') && (
+        <div className="px-5 pt-4 pb-3">
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(196,181,253,0.5)' }}>
+            4D · Pattern Prediction
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {pred4D.numbers.map((n, i) => (
+              <div
+                key={i}
+                className="rounded-xl px-3 py-1.5 font-black text-lg"
+                style={{
+                  background: 'rgba(139,92,246,0.1)',
+                  border: '1px solid rgba(139,92,246,0.3)',
+                  color: '#c4b5fd',
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                {n}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-5 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span>🔥</span>
+              <span style={{ color: 'rgba(250,245,240,0.35)' }}>Trending:</span>
+              <span style={{ color: 'rgba(251,191,36,0.7)' }}>{pred4D.hot.join(' · ')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>❄️</span>
+              <span style={{ color: 'rgba(250,245,240,0.35)' }}>Overdue:</span>
+              <span style={{ color: 'rgba(147,197,253,0.7)' }}>{pred4D.cold.join(' · ')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Divider between 4D and TOTO */}
+      {pred4D && predToto && gameType === 'both' && (
+        <div style={{ height: 1, background: 'rgba(139,92,246,0.08)', margin: '0 20px' }} />
+      )}
+
+      {/* TOTO prediction */}
+      {predToto && (gameType === 'toto' || gameType === 'both') && (
+        <div className="px-5 pt-4 pb-3">
+          <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(196,181,253,0.5)' }}>
+            TOTO · Predicted Numbers
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {predToto.numbers.map((n, i) => (
+              <div
+                key={i}
+                className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm"
+                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#c4b5fd' }}
+              >
+                {n}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-5 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span>🔥</span>
+              <span style={{ color: 'rgba(250,245,240,0.35)' }}>Hot:</span>
+              <span style={{ color: 'rgba(251,191,36,0.7)' }}>{predToto.hot.join(' · ')}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span>❄️</span>
+              <span style={{ color: 'rgba(250,245,240,0.35)' }}>Overdue:</span>
+              <span style={{ color: 'rgba(147,197,253,0.7)' }}>{predToto.cold.join(' · ')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer note */}
+      <div
+        className="px-5 py-2.5 text-xs"
+        style={{ borderTop: '1px solid rgba(139,92,246,0.08)', background: 'rgba(0,0,0,0.12)', color: 'rgba(250,245,240,0.18)' }}
+      >
+        Statistical pattern analysis only — lottery draws are truly random events.
+      </div>
     </div>
   )
 }
@@ -203,14 +306,24 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
   const [totoNumbers, setTotoNumbers] = useState([])
   const [generating, setGenerating] = useState(false)
 
+  const pred4D = useMemo(
+    () => (gameType === '4d' || gameType === 'both') ? predictNumbers4D(draws4D, mood, dreams) : null,
+    [gameType, draws4D, mood, dreams]
+  )
+  const predToto = useMemo(
+    () => (gameType === 'toto' || gameType === 'both') ? predictNumbersToto(drawsToto, mood, dreams) : null,
+    [gameType, drawsToto, mood, dreams]
+  )
+
   const generate = useCallback(() => {
     setGenerating(true)
     setFourDNumbers([])
     setTotoNumbers([])
     setTimeout(() => {
-      const dreamSeeds = dreams.map(d => d.seed)
-      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey, sessionSeed))
-      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey, sessionSeed))
+      if (gameType === '4d' || gameType === 'both')
+        setFourDNumbers(generate4DNumbers(mood, dreams, draws4D, regenerateKey, sessionSeed))
+      if (gameType === 'toto' || gameType === 'both')
+        setTotoNumbers(generateTotoNumbers(mood, dreams, drawsToto, regenerateKey, sessionSeed))
       setGenerating(false)
     }, 1600)
   }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed])
@@ -274,11 +387,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
               </div>
               <div
                 className="mt-3 rounded-xl p-3 text-xs text-center"
-                style={{
-                  background: 'rgba(220,38,38,0.05)',
-                  border: '1px solid rgba(220,38,38,0.1)',
-                  color: 'rgba(250,245,240,0.35)',
-                }}
+                style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.1)', color: 'rgba(250,245,240,0.35)' }}
               >
                 <strong style={{ color: 'rgba(250,245,240,0.5)' }}>Big Bet</strong> — any of 23 winning numbers &nbsp;|&nbsp;
                 <strong style={{ color: 'rgba(250,245,240,0.5)' }}>Small Bet</strong> — top 3 prizes only
@@ -302,6 +411,17 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
               </div>
               <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} drawsToto={drawsToto} onUpdate={setTotoNumbers} />
             </div>
+          )}
+
+          {/* Prize prediction panel */}
+          {(pred4D || predToto) && (
+            <PredictionPanel
+              gameType={gameType}
+              pred4D={pred4D}
+              predToto={predToto}
+              mood={mood}
+              dreams={dreams}
+            />
           )}
 
           {/* Disclaimer */}
