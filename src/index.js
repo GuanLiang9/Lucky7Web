@@ -218,7 +218,7 @@ export default {
       headers: {
         ...ch,
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=7200, s-maxage=7200',
+        'Cache-Control': 'public, max-age=0, s-maxage=7200',
       },
     })
 
