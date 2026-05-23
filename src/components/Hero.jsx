@@ -88,7 +88,7 @@ export default function Hero({ onStart }) {
 
       {/* Stats row */}
       <div
-        className="flex flex-wrap justify-center gap-2 mt-14"
+        className="grid grid-cols-1 sm:flex sm:flex-wrap justify-center gap-2 mt-14 w-full max-w-sm sm:max-w-none"
         style={{ animation: 'fadeIn 0.8s ease-out 0.5s both' }}
       >
         {[

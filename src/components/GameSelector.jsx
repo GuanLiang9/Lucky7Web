@@ -66,14 +66,14 @@ export default function GameSelector({ selected, onSelect }) {
         <div className="gold-line w-24 mx-auto mt-3" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {games.map(game => {
           const isSelected = selected === game.id
           return (
             <button
               key={game.id}
               onClick={() => onSelect(game.id)}
-              className="relative rounded-2xl p-5 text-left transition-all duration-300 hover:scale-[1.03]"
+              className="relative rounded-2xl p-4 text-left transition-all duration-300 hover:scale-[1.02] flex sm:block items-center gap-4"
               style={{
                 background: isSelected ? game.activeStyle.background : 'rgba(220,38,38,0.06)',
                 border: `1px solid ${isSelected ? game.activeStyle.borderColor : 'rgba(220,38,38,0.15)'}`,
@@ -87,30 +87,31 @@ export default function GameSelector({ selected, onSelect }) {
                 />
               )}
 
-              <div className="text-3xl mb-3">{game.icon}</div>
+              <div className="text-3xl sm:mb-3 flex-shrink-0">{game.icon}</div>
 
-              <div className="flex items-baseline gap-2 mb-0.5">
-                <span
-                  className="text-2xl font-black"
-                  style={{ color: isSelected ? game.activeLabelColor : '#faf5f0' }}
-                >
-                  {game.label}
-                </span>
-                <span className="text-sm" style={{ color: 'rgba(251,191,36,0.35)' }}>{game.chinese}</span>
-              </div>
-
-              <div className="text-xs mb-0.5" style={{ color: 'rgba(250,245,240,0.45)' }}>{game.description}</div>
-              <div className="text-xs mb-3 font-mono" style={{ color: 'rgba(250,245,240,0.3)' }}>{game.range}</div>
-
-              <div className="text-xs py-2" style={{ color: 'rgba(250,245,240,0.25)', borderTop: '1px solid rgba(251,191,36,0.08)' }}>
-                {game.draws}
-              </div>
-
-              <div className="mt-2">
-                <div className="text-xs font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.35)' }}>
-                  {game.prize}
+              <div className="flex-1">
+                <div className="flex items-baseline gap-2 mb-0.5">
+                  <span
+                    className="text-xl sm:text-2xl font-black"
+                    style={{ color: isSelected ? game.activeLabelColor : '#faf5f0' }}
+                  >
+                    {game.label}
+                  </span>
+                  <span className="text-sm" style={{ color: 'rgba(251,191,36,0.35)' }}>{game.chinese}</span>
                 </div>
-                <div className="text-xs" style={{ color: 'rgba(250,245,240,0.2)' }}>{game.prizeNote}</div>
+
+                <div className="text-xs mb-0.5" style={{ color: 'rgba(250,245,240,0.45)' }}>{game.description}</div>
+                <div className="text-xs font-mono" style={{ color: 'rgba(250,245,240,0.3)' }}>{game.range}</div>
+
+                <div className="hidden sm:block text-xs mt-3 pt-2" style={{ color: 'rgba(250,245,240,0.25)', borderTop: '1px solid rgba(251,191,36,0.08)' }}>
+                  {game.draws}
+                </div>
+                <div className="hidden sm:block mt-2">
+                  <div className="text-xs font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.35)' }}>
+                    {game.prize}
+                  </div>
+                  <div className="text-xs" style={{ color: 'rgba(250,245,240,0.2)' }}>{game.prizeNote}</div>
+                </div>
               </div>
             </button>
           )

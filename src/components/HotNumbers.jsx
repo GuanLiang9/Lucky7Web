@@ -90,7 +90,7 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
               <span>4D {isHot ? 'Hot' : 'Cold'} Digits</span>
               <Badge label={isHot ? '最热' : '最冷'} color={{ bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.3)', text: '#fbbf24' }} />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {fourdDigits.map((digit, i) => (
                 <div
                   key={digit}

@@ -42,7 +42,7 @@ export default function DreamPicker({ selected, onToggle }) {
       </div>
 
       {/* Dream items */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {currentCategory.items.map(item => {
           const isSelected = selected.some(s => s.id === item.id)
           return (

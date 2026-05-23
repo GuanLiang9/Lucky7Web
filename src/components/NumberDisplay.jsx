@@ -99,14 +99,14 @@ function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
   return (
     <div className="glass-strong rounded-2xl p-5">
       {/* Top 3 picks */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         {top3.map((n, i) => {
           const meta = TOTO_TOP3[i]
           return (
             <button
               key={i}
               onClick={() => handleSwap(i)}
-              className="flex flex-col items-center rounded-2xl p-4 transition-all active:scale-95"
+              className="flex flex-col items-center rounded-2xl p-3 sm:p-4 transition-all active:scale-95"
               style={{
                 background: meta.color.bg,
                 border: `1px solid ${meta.color.border}`,
@@ -115,14 +115,14 @@ function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
               }}
               title="Click to swap"
             >
-              <span className="text-base mb-1">{meta.icon}</span>
+              <span className="text-sm mb-1">{meta.icon}</span>
               <span
-                className="font-black text-3xl leading-none mb-2"
+                className="font-black text-2xl sm:text-3xl leading-none mb-1.5"
                 style={{ color: meta.color.text, fontVariantNumeric: 'tabular-nums' }}
               >
                 {n}
               </span>
-              <span className="text-xs uppercase tracking-widest" style={{ color: 'rgba(250,245,240,0.3)' }}>
+              <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
                 {meta.label}
               </span>
             </button>
@@ -138,12 +138,12 @@ function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
         <div className="text-xs uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(251,191,36,0.4)' }}>
           Additional Picks
         </div>
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-2">
           {others.map((n, i) => (
             <button
               key={i + 3}
               onClick={() => handleSwap(i + 3)}
-              className="toto-ball w-12 h-12 rounded-full font-black text-lg flex items-center justify-center"
+              className="toto-ball w-11 h-11 sm:w-12 sm:h-12 rounded-full font-black text-base sm:text-lg flex items-center justify-center"
               style={swapping === i + 3 ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
               title="Click to swap"
             >
