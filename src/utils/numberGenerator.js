@@ -6,12 +6,12 @@ function seededRandom(seed) {
   }
 }
 
-function getSeed(mood, dreamSeeds) {
+function getSeed(mood, dreamSeeds, iteration = 0) {
   const now = new Date()
   const dateSeed = (now.getDate() + 1) * (now.getMonth() + 1) * ((now.getFullYear() % 100) + 1)
   const moodVal = Math.round((mood?.weight || 1) * 100)
   const dreamSum = dreamSeeds.reduce((a, b) => a + b, 0) || 50
-  return ((dateSeed * moodVal) + dreamSum * 7) % 99991 + 1
+  return ((dateSeed * moodVal) + dreamSum * 7 + iteration * 1337) % 99991 + 1
 }
 
 // Pick an index from a weighted array using the given rng
@@ -49,8 +49,8 @@ function getTotoWeights(drawsToto) {
   return freq
 }
 
-export function generate4DNumbers(mood, dreamSeeds, draws4D) {
-  const seed = getSeed(mood, dreamSeeds)
+export function generate4DNumbers(mood, dreamSeeds, draws4D, iteration = 0) {
+  const seed = getSeed(mood, dreamSeeds, iteration)
   const rng = seededRandom(seed)
   const weights = getDigitWeights(draws4D)
 
@@ -59,10 +59,9 @@ export function generate4DNumbers(mood, dreamSeeds, draws4D) {
   )
 }
 
-export function generateTotoNumbers(mood, dreamSeeds, drawsToto) {
-  const seed = getSeed(mood, dreamSeeds) + 555
+export function generateTotoNumbers(mood, dreamSeeds, drawsToto, iteration = 0) {
+  const seed = getSeed(mood, dreamSeeds, iteration) + 555
   const rng = seededRandom(seed)
-  // weights[1..49] — slice off index 0 so weightedPick returns 0-based index, then +1
   const weights = getTotoWeights(drawsToto).slice(1)
 
   const numbers = new Set()

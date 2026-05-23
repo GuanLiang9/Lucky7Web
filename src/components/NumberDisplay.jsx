@@ -209,11 +209,11 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
     setTotoNumbers([])
     setTimeout(() => {
       const dreamSeeds = dreams.map(d => d.seed)
-      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D))
-      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto))
+      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey))
+      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey))
       setGenerating(false)
     }, 1600)
-  }, [gameType, mood, dreams, draws4D, drawsToto])
+  }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey])
 
   useEffect(() => {
     if (visible) generate()
