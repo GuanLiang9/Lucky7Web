@@ -31,6 +31,7 @@ export default function App() {
   const [showNumbers, setShowNumbers] = useState(false)
   const [regenerateKey, setRegenerateKey] = useState(0)
   const [started, setStarted] = useState(false)
+  const [showPersonalise, setShowPersonalise] = useState(false)
 
   // Live results state
   const [draws4D, setDraws4D] = useState(null)
@@ -69,7 +70,7 @@ export default function App() {
   const handleMoodSelect = (m)  => { setMood(m); resetNumbers() }
 
   const handleGenerate = () => {
-    if (!gameType || !mood) return
+    if (!gameType) return
     if (showNumbers) { setRegenerateKey(k => k + 1) } else { setShowNumbers(true) }
     setTimeout(() => numbersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
@@ -126,13 +127,12 @@ export default function App() {
       {started && (
         <div ref={mainRef} className="relative z-10">
           <SectionDivider label="Your Fortune Session" />
-          <GameSelector selected={gameType} onSelect={handleGameSelect} />
-          <MoodPicker selected={mood} onSelect={handleMoodSelect} />
-          <DreamPicker selected={selectedDreams} onToggle={handleDreamToggle} />
-          <HotNumbers gameType={gameType} draws4D={draws4D} drawsToto={drawsToto} />
 
-          {/* Generate CTA */}
-          <div className="text-center px-6 mb-14">
+          {/* Step 1: Game selector */}
+          <GameSelector selected={gameType} onSelect={handleGameSelect} />
+
+          {/* Generate CTA — shown right after game selection */}
+          <div className="text-center px-6 mb-6">
             <button
               onClick={handleGenerate}
               disabled={!canGenerate}
@@ -160,9 +160,59 @@ export default function App() {
             )}
           </div>
 
+          {/* Personalise toggle */}
+          <div className="w-full max-w-3xl mx-auto px-6 mb-10">
+            <button
+              onClick={() => setShowPersonalise(v => !v)}
+              className="w-full flex items-center justify-between rounded-2xl px-5 py-3.5 transition-all"
+              style={{
+                background: showPersonalise ? 'rgba(251,191,36,0.07)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${showPersonalise ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.07)'}`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-base">✨</span>
+                <div className="text-left">
+                  <div className="text-sm font-bold" style={{ color: showPersonalise ? '#fbbf24' : 'rgba(250,245,240,0.5)' }}>
+                    Personalise for more accurate numbers
+                  </div>
+                  <div className="text-xs" style={{ color: 'rgba(250,245,240,0.25)' }}>
+                    Add your mood & dreams · 加入心情和梦境
+                    {(mood || selectedDreams.length > 0) && (
+                      <span className="ml-2" style={{ color: '#fbbf24' }}>
+                        {[mood && mood.emoji, selectedDreams.length > 0 && `${selectedDreams.length} dream${selectedDreams.length > 1 ? 's' : ''}`].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <span
+                className="text-lg transition-transform duration-300"
+                style={{
+                  color: 'rgba(251,191,36,0.5)',
+                  transform: showPersonalise ? 'rotate(180deg)' : 'rotate(0deg)',
+                  display: 'inline-block',
+                }}
+              >
+                ▾
+              </span>
+            </button>
+
+            {showPersonalise && (
+              <div style={{ animation: 'slideUp 0.3s ease-out both' }}>
+                <div className="mt-6">
+                  <MoodPicker selected={mood} onSelect={handleMoodSelect} />
+                  <DreamPicker selected={selectedDreams} onToggle={handleDreamToggle} />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div ref={numbersRef}>
             <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} />
           </div>
+
+          <HotNumbers gameType={gameType} draws4D={draws4D} drawsToto={drawsToto} />
 
           <SectionDivider label="Recent Draw Results" />
           <PreviousDraws draws4D={draws4D} drawsToto={drawsToto} loading={loadingResults} live={resultsLive} updatedAt={resultsUpdatedAt} />
