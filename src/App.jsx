@@ -7,6 +7,7 @@ import DreamPicker from './components/DreamPicker.jsx'
 import NumberDisplay from './components/NumberDisplay.jsx'
 import PreviousDraws from './components/PreviousDraws.jsx'
 import HotNumbers from './components/HotNumbers.jsx'
+import Donate from './components/Donate.jsx'
 import { fetchResults } from './data/api.js'
 
 function SectionDivider({ label }) {
@@ -167,6 +168,9 @@ export default function App() {
           <PreviousDraws draws4D={draws4D} drawsToto={drawsToto} loading={loadingResults} live={resultsLive} updatedAt={resultsUpdatedAt} />
         </div>
       )}
+
+      <SectionDivider label="Support the Creator" />
+      <Donate />
 
       {/* Footer */}
       <footer className="relative z-10 py-10 text-center" style={{ borderTop: '1px solid rgba(251,191,36,0.08)' }}>
