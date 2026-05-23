@@ -1,6 +1,21 @@
 import React, { useState } from 'react'
 import { previousDraws4D, previousDrawsToto } from '../data/previousDraws.js'
 
+function LiveBadge({ live }) {
+  return live ? (
+    <span className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 font-semibold"
+      style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.3)', color: '#f87171' }}>
+      <span className="w-1 h-1 rounded-full bg-red-400 animate-pulse" />
+      Live
+    </span>
+  ) : (
+    <span className="text-xs rounded-full px-2 py-0.5"
+      style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', color: 'rgba(251,191,36,0.5)' }}>
+      Cached
+    </span>
+  )
+}
+
 function FourDDrawCard({ draw }) {
   const [showAll, setShowAll] = useState(false)
 
@@ -156,12 +171,19 @@ function TotoDrawCard({ draw }) {
   )
 }
 
-export default function PreviousDraws() {
+export default function PreviousDraws({ draws4D: liveDraw4D, drawsToto: liveToto, loading, live = {}, updatedAt }) {
   const [tab, setTab] = useState('4d')
+
+  const data4D   = liveDraw4D  || previousDraws4D
+  const dataToto = liveToto    || previousDrawsToto
+
+  const lastUpdated = updatedAt
+    ? new Date(updatedAt).toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' })
+    : null
 
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-16">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-xl font-black" style={{ color: '#faf5f0' }}>Recent Results</h3>
         <div className="flex gap-2">
           {[
@@ -188,15 +210,33 @@ export default function PreviousDraws() {
         </div>
       </div>
 
+      {/* Live / cached status */}
+      <div className="flex items-center gap-3 mb-4">
+        <LiveBadge live={tab === '4d' ? live['4d'] : live.toto} />
+        {lastUpdated && (
+          <span className="text-xs" style={{ color: 'rgba(250,245,240,0.25)' }}>
+            as of {lastUpdated}
+          </span>
+        )}
+        {loading && (
+          <span className="text-xs" style={{ color: 'rgba(251,191,36,0.4)' }}>Fetching latest results...</span>
+        )}
+      </div>
+
       <div className="grid gap-4">
-        {tab === '4d'
-          ? previousDraws4D.map(d => <FourDDrawCard key={d.drawNo} draw={d} />)
-          : previousDrawsToto.map(d => <TotoDrawCard key={d.drawNo} draw={d} />)
+        {loading ? (
+          <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(220,38,38,0.04)', border: '1px solid rgba(220,38,38,0.1)' }}>
+            <div className="text-2xl mb-2" style={{ animation: 'float 2s ease-in-out infinite' }}>🏮</div>
+            <div className="text-sm" style={{ color: 'rgba(250,245,240,0.3)' }}>Fetching latest results from Singapore Pools...</div>
+          </div>
+        ) : tab === '4d'
+          ? data4D.map(d => <FourDDrawCard key={d.drawNo} draw={d} />)
+          : dataToto.map(d => <TotoDrawCard key={d.drawNo} draw={d} />)
         }
       </div>
 
       <p className="mt-4 text-xs text-center" style={{ color: 'rgba(250,245,240,0.15)' }}>
-        Sample data for reference · singaporepools.com.sg for official results
+        {live['4d'] || live.toto ? 'Live data from Singapore Pools' : 'Using cached data · singaporepools.com.sg for official results'}
       </p>
     </div>
   )

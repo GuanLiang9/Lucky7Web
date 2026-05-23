@@ -1,5 +1,23 @@
-import React, { useState } from 'react'
-import { hot4DDigits, cold4DDigits, hotTotoNums, coldTotoNums } from '../data/previousDraws.js'
+import React, { useState, useMemo } from 'react'
+import { previousDraws4D, previousDrawsToto, hot4DDigits, cold4DDigits, hotTotoNums, coldTotoNums } from '../data/previousDraws.js'
+
+function computeHot4D(draws) {
+  const freq = {}
+  draws.forEach(d => {
+    const all = [d.first, d.second, d.third, ...(d.starters||[]), ...(d.consolation||[])]
+    all.forEach(n => n && n.split('').forEach(digit => { freq[digit] = (freq[digit] || 0) + 1 }))
+  })
+  return Object.entries(freq).sort((a,b) => b[1]-a[1]).map(([d]) => d)
+}
+
+function computeHotToto(draws) {
+  const freq = {}
+  draws.forEach(d => {
+    (d.numbers||[]).forEach(n => { freq[n] = (freq[n] || 0) + 1 })
+    if (d.bonus) freq[d.bonus] = (freq[d.bonus] || 0) + 0.5
+  })
+  return Object.entries(freq).sort((a,b) => b[1]-a[1]).map(([n]) => parseInt(n))
+}
 
 function Badge({ label, color }) {
   return (
@@ -12,13 +30,16 @@ function Badge({ label, color }) {
   )
 }
 
-export default function HotNumbers({ gameType }) {
+export default function HotNumbers({ gameType, draws4D, drawsToto }) {
   const [tab, setTab] = useState('hot')
 
   const isHot = tab === 'hot'
 
-  const fourdDigits = isHot ? hot4DDigits : cold4DDigits
-  const totoNums    = isHot ? hotTotoNums.slice(0, 12) : coldTotoNums.slice(0, 12)
+  const computed4D   = useMemo(() => computeHot4D(draws4D   || previousDraws4D),   [draws4D])
+  const computedToto = useMemo(() => computeHotToto(drawsToto || previousDrawsToto), [drawsToto])
+
+  const fourdDigits = isHot ? computed4D : [...computed4D].reverse()
+  const totoNums    = (isHot ? computedToto : [...computedToto].reverse()).slice(0, 12)
 
   const show4d   = gameType === '4d'   || gameType === 'both'
   const showToto = gameType === 'toto' || gameType === 'both'
