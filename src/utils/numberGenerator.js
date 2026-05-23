@@ -6,12 +6,12 @@ function seededRandom(seed) {
   }
 }
 
-function getSeed(mood, dreamSeeds, iteration = 0) {
+function getSeed(mood, dreamSeeds, iteration = 0, sessionSeed = 0) {
   const now = new Date()
   const dateSeed = (now.getDate() + 1) * (now.getMonth() + 1) * ((now.getFullYear() % 100) + 1)
   const moodVal = Math.round((mood?.weight || 1) * 100)
   const dreamSum = dreamSeeds.reduce((a, b) => a + b, 0) || 50
-  return ((dateSeed * moodVal) + dreamSum * 7 + iteration * 1337) % 99991 + 1
+  return ((dateSeed * moodVal) + dreamSum * 7 + iteration * 1337 + sessionSeed * 97) % 99991 + 1
 }
 
 function weightedPick(rng, weights) {
@@ -62,8 +62,8 @@ function lastDrawTotoNumbers(drawsToto) {
   return new Set([...(d.numbers || []), d.bonus].filter(Boolean))
 }
 
-export function generate4DNumbers(mood, dreamSeeds, draws4D, iteration = 0) {
-  const seed = getSeed(mood, dreamSeeds, iteration)
+export function generate4DNumbers(mood, dreamSeeds, draws4D, iteration = 0, sessionSeed = 0) {
+  const seed = getSeed(mood, dreamSeeds, iteration, sessionSeed)
   const rng = seededRandom(seed)
   const weights = getDigitWeights(draws4D)
   const excluded = lastDraw4DNumbers(draws4D)
@@ -81,8 +81,8 @@ export function generate4DNumbers(mood, dreamSeeds, draws4D, iteration = 0) {
   })
 }
 
-export function generateTotoNumbers(mood, dreamSeeds, drawsToto, iteration = 0) {
-  const seed = getSeed(mood, dreamSeeds, iteration) + 555
+export function generateTotoNumbers(mood, dreamSeeds, drawsToto, iteration = 0, sessionSeed = 0) {
+  const seed = getSeed(mood, dreamSeeds, iteration, sessionSeed) + 555
   const rng = seededRandom(seed)
 
   // Start from frequency weights

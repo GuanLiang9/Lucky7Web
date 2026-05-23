@@ -25,6 +25,7 @@ function SectionDivider({ label }) {
 }
 
 export default function App() {
+  const [sessionSeed] = useState(() => Math.floor(Math.random() * 99991))
   const [gameType, setGameType] = useState(null)
   const [mood, setMood] = useState(null)
   const [selectedDreams, setSelectedDreams] = useState([])
@@ -209,7 +210,7 @@ export default function App() {
           </div>
 
           <div ref={numbersRef}>
-            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} draws4D={draws4D} drawsToto={drawsToto} />
+            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} draws4D={draws4D} drawsToto={drawsToto} sessionSeed={sessionSeed} />
           </div>
 
           <HotNumbers gameType={gameType} draws4D={draws4D} drawsToto={drawsToto} />

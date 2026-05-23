@@ -198,7 +198,7 @@ function GeneratingState() {
   )
 }
 
-export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto }) {
+export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto, sessionSeed }) {
   const [fourDNumbers, setFourDNumbers] = useState([])
   const [totoNumbers, setTotoNumbers] = useState([])
   const [generating, setGenerating] = useState(false)
@@ -209,11 +209,11 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
     setTotoNumbers([])
     setTimeout(() => {
       const dreamSeeds = dreams.map(d => d.seed)
-      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey))
-      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey))
+      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey, sessionSeed))
+      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey, sessionSeed))
       setGenerating(false)
     }, 1600)
-  }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey])
+  }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed])
 
   useEffect(() => {
     if (visible) generate()
