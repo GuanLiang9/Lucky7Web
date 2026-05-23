@@ -209,7 +209,7 @@ export default function App() {
           </div>
 
           <div ref={numbersRef}>
-            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} />
+            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} draws4D={draws4D} drawsToto={drawsToto} />
           </div>
 
           <HotNumbers gameType={gameType} draws4D={draws4D} drawsToto={drawsToto} />

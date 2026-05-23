@@ -57,23 +57,7 @@ export default function Donate() {
           Scan with your phone camera or banking app · 扫码即可付款
         </p>
 
-        {/* Tap to pay fallback */}
-        <a
-          href={PAYLAH_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-bold text-sm transition-all hover:opacity-80 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-            color: '#fff',
-            boxShadow: '0 0 20px rgba(220,38,38,0.25)',
-          }}
-        >
-          <span>💳</span>
-          <span>Tap to Pay (mobile)</span>
-        </a>
-
-        <p className="text-xs mt-5" style={{ color: 'rgba(250,245,240,0.15)' }}>
+        <p className="text-xs mt-2" style={{ color: 'rgba(250,245,240,0.15)' }}>
           Any amount welcome · 多少随意
         </p>
       </div>

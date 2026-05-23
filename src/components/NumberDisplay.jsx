@@ -48,11 +48,11 @@ function DigitCard({ digit, onRefresh, position }) {
   )
 }
 
-function FourDSet({ number, setIndex, label, mood, dreams, onUpdate }) {
+function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) {
   const digits = number.split('')
 
   const handleDigitRefresh = (pos) => {
-    const updated = regenerateSingle4DDigit(number, pos, mood, dreams.map(d => d.seed))
+    const updated = regenerateSingle4DDigit(number, pos, mood, dreams.map(d => d.seed), draws4D)
     onUpdate(setIndex, updated)
   }
 
@@ -80,14 +80,14 @@ const TOTO_TOP3 = [
   { icon: '🥉', label: 'Top Pick 财', color: { bg: 'rgba(217,119,6,0.15)',  border: 'rgba(217,119,6,0.45)',   text: '#d97706', size: 60 } },
 ]
 
-function TotoDisplay({ numbers, mood, dreams, onUpdate }) {
+function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
   const [swapping, setSwapping] = useState(null)
 
   const handleSwap = (index) => {
     if (swapping !== null) return
     setSwapping(index)
     setTimeout(() => {
-      const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams.map(d => d.seed))
+      const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams.map(d => d.seed), drawsToto)
       onUpdate(updated)
       setSwapping(null)
     }, 400)
@@ -198,7 +198,7 @@ function GeneratingState() {
   )
 }
 
-export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey }) {
+export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto }) {
   const [fourDNumbers, setFourDNumbers] = useState([])
   const [totoNumbers, setTotoNumbers] = useState([])
   const [generating, setGenerating] = useState(false)
@@ -209,11 +209,11 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
     setTotoNumbers([])
     setTimeout(() => {
       const dreamSeeds = dreams.map(d => d.seed)
-      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds))
-      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds))
+      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D))
+      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto))
       setGenerating(false)
     }, 1600)
-  }, [gameType, mood, dreams])
+  }, [gameType, mood, dreams, draws4D, drawsToto])
 
   useEffect(() => {
     if (visible) generate()
@@ -265,6 +265,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                     label={['Lucky Pick 福', 'Alternate 发', 'Alternate 财'][i]}
                     mood={mood}
                     dreams={dreams}
+                    draws4D={draws4D}
                     onUpdate={(idx, updated) =>
                       setFourDNumbers(prev => { const n = [...prev]; n[idx] = updated; return n })
                     }
@@ -299,7 +300,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                   Jackpot S$3,200,000 · Next draw: Thu 26 May
                 </span>
               </div>
-              <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} onUpdate={setTotoNumbers} />
+              <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} drawsToto={drawsToto} onUpdate={setTotoNumbers} />
             </div>
           )}
 
