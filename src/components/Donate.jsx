@@ -12,20 +12,29 @@ function crc16(str) {
   return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0')
 }
 
+function tlv(tag, value) {
+  return `${tag}${String(value.length).padStart(2, '0')}${value}`
+}
+
 function buildPayNowQR(mobile) {
   const proxy = `+65${mobile}`
-  const pad = (s) => String(s.length).padStart(2, '0')
 
-  const sub = [
-    `00${pad('SG.PAYNOW')}SG.PAYNOW`,
-    `01011`,
-    `02${pad(proxy)}${proxy}`,
-    `03011`,
-    `0400`,
-  ].join('')
+  const tag26content =
+    tlv('00', 'SG.PAYNOW') +
+    tlv('01', '0') +        // 0 = mobile number
+    tlv('02', proxy) +
+    tlv('03', '1') +        // 1 = payer enters amount
+    tlv('04', '')           // no expiry
 
-  const tag26 = `26${pad(sub)}${sub}`
-  const body = `000201010211${tag26}520400005303702 5802SG6304`.replace(' ', '')
+  const body =
+    tlv('00', '01') +
+    tlv('01', '11') +
+    tlv('26', tag26content) +
+    tlv('52', '0000') +
+    tlv('53', '702') +
+    tlv('58', 'SG') +
+    '6304'
+
   return body + crc16(body)
 }
 
