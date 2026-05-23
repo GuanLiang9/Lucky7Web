@@ -1,0 +1,58 @@
+export const dreamCategories = [
+  {
+    id: 'animals',
+    label: 'Animals',
+    chinese: '动物',
+    emoji: '🐉',
+    items: [
+      { id: 'dragon',  label: 'Dragon',       chinese: '龙',   emoji: '🐉', seed: 88 },
+      { id: 'tiger',   label: 'Tiger',        chinese: '老虎', emoji: '🐯', seed: 37 },
+      { id: 'fish',    label: 'Fish',         chinese: '鱼',   emoji: '🐟', seed: 56 },
+      { id: 'bird',    label: 'Bird',         chinese: '鸟',   emoji: '🦅', seed: 23 },
+      { id: 'snake',   label: 'Snake',        chinese: '蛇',   emoji: '🐍', seed: 14 },
+      { id: 'rabbit',  label: 'Rabbit',       chinese: '兔子', emoji: '🐰', seed: 45 },
+    ],
+  },
+  {
+    id: 'nature',
+    label: 'Nature',
+    chinese: '自然',
+    emoji: '🌊',
+    items: [
+      { id: 'water',     label: 'Water / Ocean', chinese: '水/海洋', emoji: '🌊', seed: 72 },
+      { id: 'fire',      label: 'Fire',          chinese: '火焰',   emoji: '🔥', seed: 19 },
+      { id: 'mountain',  label: 'Mountain',      chinese: '山',     emoji: '⛰️', seed: 63 },
+      { id: 'rainbow',   label: 'Rainbow',       chinese: '彩虹',   emoji: '🌈', seed: 77 },
+      { id: 'lightning', label: 'Lightning',     chinese: '闪电',   emoji: '⚡', seed: 11 },
+      { id: 'moon',      label: 'Moon',          chinese: '月亮',   emoji: '🌙', seed: 38 },
+    ],
+  },
+  {
+    id: 'objects',
+    label: 'Objects / Events',
+    chinese: '物品/事件',
+    emoji: '💎',
+    items: [
+      { id: 'gold',    label: 'Gold / Money', chinese: '金钱',   emoji: '💰', seed: 99 },
+      { id: 'gems',    label: 'Gems / Jewels',chinese: '宝石',   emoji: '💎', seed: 84 },
+      { id: 'car',     label: 'Car / Vehicle',chinese: '车辆',   emoji: '🚗', seed: 26 },
+      { id: 'house',   label: 'House / Home', chinese: '家/房屋', emoji: '🏡', seed: 52 },
+      { id: 'wedding', label: 'Wedding',      chinese: '婚礼',   emoji: '💍', seed: 68 },
+      { id: 'baby',    label: 'Baby / Birth', chinese: '婴儿/出生', emoji: '👶', seed: 17 },
+    ],
+  },
+  {
+    id: 'people',
+    label: 'People',
+    chinese: '人物',
+    emoji: '👤',
+    items: [
+      { id: 'ancestor',  label: 'Ancestor / Elder', chinese: '祖先/长辈', emoji: '🧓', seed: 41 },
+      { id: 'stranger',  label: 'Stranger',         chinese: '陌生人',   emoji: '🧑', seed: 33 },
+      { id: 'celebrity', label: 'Famous Person',    chinese: '名人',     emoji: '⭐', seed: 79 },
+      { id: 'child',     label: 'Child',            chinese: '小孩',     emoji: '👧', seed: 25 },
+      { id: 'lover',     label: 'Lover / Partner',  chinese: '爱人/伴侣', emoji: '❤️', seed: 55 },
+      { id: 'boss',      label: 'Boss / Authority', chinese: '上司/权威', emoji: '👔', seed: 12 },
+    ],
+  },
+]
