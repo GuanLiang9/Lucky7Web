@@ -1,46 +1,9 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 
-function crc16(str) {
-  let crc = 0xFFFF
-  for (let i = 0; i < str.length; i++) {
-    crc ^= str.charCodeAt(i) << 8
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1)
-    }
-  }
-  return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0')
-}
-
-function tlv(tag, value) {
-  return `${tag}${String(value.length).padStart(2, '0')}${value}`
-}
-
-function buildPayNowQR(mobile) {
-  const proxy = `+65${mobile}`
-
-  const tag26content =
-    tlv('00', 'SG.PAYNOW') +
-    tlv('01', '1') +        // 1 = mobile number
-    tlv('02', proxy) +
-    tlv('03', '1') +        // 1 = payer enters amount
-    tlv('04', '')           // no expiry
-
-  const body =
-    tlv('00', '01') +
-    tlv('01', '11') +
-    tlv('26', tag26content) +
-    tlv('52', '0000') +
-    tlv('53', '702') +
-    tlv('58', 'SG') +
-    '6304'
-
-  return body + crc16(body)
-}
+const PAYLAH_URL = 'https://www.dbs.com.sg/personal/mobile/paylink/index.html?tranRef=PyVoTRP44Q'
 
 export default function Donate() {
-  const qrValue = useMemo(() => buildPayNowQR('93228017'), [])
-
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-16">
       <div
@@ -61,7 +24,7 @@ export default function Donate() {
         </p>
 
         {/* QR Code */}
-        <div className="flex justify-center mb-5">
+        <div className="flex justify-center mb-4">
           <div
             className="rounded-2xl p-4 inline-block"
             style={{
@@ -71,7 +34,7 @@ export default function Donate() {
             }}
           >
             <QRCodeSVG
-              value={qrValue}
+              value={PAYLAH_URL}
               size={180}
               bgColor="#ffffff"
               fgColor="#1a0000"
@@ -80,23 +43,38 @@ export default function Donate() {
           </div>
         </div>
 
-        {/* PayNow label */}
+        {/* Badge */}
         <div
           className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-3"
           style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)' }}
         >
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#f87171' }}>
-            PayNow
+            DBS PayLah!
           </span>
         </div>
 
-        <p className="text-sm font-bold mb-1" style={{ color: '#fbbf24' }}>+65 9322 8017</p>
-        <p className="text-xs" style={{ color: 'rgba(250,245,240,0.25)' }}>
-          Scan with DBS PayLah!, OCBC, UOB, or any PayNow-enabled app
+        <p className="text-xs mb-5" style={{ color: 'rgba(250,245,240,0.35)' }}>
+          Scan with your phone camera or banking app · 扫码即可付款
         </p>
 
+        {/* Tap to pay fallback */}
+        <a
+          href={PAYLAH_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-bold text-sm transition-all hover:opacity-80 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+            color: '#fff',
+            boxShadow: '0 0 20px rgba(220,38,38,0.25)',
+          }}
+        >
+          <span>💳</span>
+          <span>Tap to Pay (mobile)</span>
+        </a>
+
         <p className="text-xs mt-5" style={{ color: 'rgba(250,245,240,0.15)' }}>
-          Any amount welcome · 多少随意 · You enter the amount yourself
+          Any amount welcome · 多少随意
         </p>
       </div>
     </div>
