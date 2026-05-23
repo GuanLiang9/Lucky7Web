@@ -74,7 +74,7 @@ export default function App() {
     setTimeout(() => numbersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
   }
 
-  const canGenerate = Boolean(gameType && mood)
+  const canGenerate = Boolean(gameType)
 
   // Format last-updated timestamp
   const updatedLabel = resultsUpdatedAt
@@ -155,7 +155,7 @@ export default function App() {
             </button>
             {!canGenerate && (
               <p className="text-xs mt-3" style={{ color: 'rgba(250,245,240,0.2)' }}>
-                {!gameType ? '← Select a game type above' : '← Choose your mood to continue'}
+                ← Select a game type above to continue
               </p>
             )}
           </div>

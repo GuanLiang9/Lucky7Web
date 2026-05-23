@@ -23,9 +23,12 @@ export default function MoodPicker({ selected, onSelect }) {
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-14">
       <div className="text-center mb-8">
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤二 · Step 2 of 3</div>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="text-xs uppercase tracking-widest" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤二 · Step 2</div>
+          <span className="text-xs rounded-full px-2 py-0.5 font-semibold" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: 'rgba(251,191,36,0.6)' }}>Optional</span>
+        </div>
         <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>How Are You Feeling?</h2>
-        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Your energy shapes your fortune · 你的能量决定命运</p>
+        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Personalises your numbers · skip to use pure fate · 可跳过</p>
         <div className="gold-line w-24 mx-auto mt-3" />
       </div>
 

@@ -61,7 +61,7 @@ export default function GameSelector({ selected, onSelect }) {
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-14">
       <div className="text-center mb-8">
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤一 · Step 1 of 3</div>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤一 · Step 1 · Required</div>
         <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>Choose Your Game</h2>
         <div className="gold-line w-24 mx-auto mt-3" />
       </div>
