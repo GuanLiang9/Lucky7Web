@@ -10,6 +10,13 @@ const colorStyles = {
   red:     { active: 'rgba(239,68,68,0.18)',   border: 'rgba(239,68,68,0.55)',  text: '#f87171' },
   violet:  { active: 'rgba(139,92,246,0.15)',  border: 'rgba(139,92,246,0.5)',  text: '#a78bfa' },
   amber:   { active: 'rgba(245,158,11,0.15)',  border: 'rgba(245,158,11,0.5)',  text: '#fcd34d' },
+  blue:    { active: 'rgba(59,130,246,0.15)',  border: 'rgba(59,130,246,0.5)',  text: '#60a5fa' },
+  pink:    { active: 'rgba(236,72,153,0.15)',  border: 'rgba(236,72,153,0.5)',  text: '#f472b6' },
+  slate:   { active: 'rgba(100,116,139,0.15)', border: 'rgba(100,116,139,0.5)', text: '#94a3b8' },
+  gold:    { active: 'rgba(251,191,36,0.18)',  border: 'rgba(251,191,36,0.55)', text: '#fbbf24' },
+  rose:    { active: 'rgba(244,63,94,0.15)',   border: 'rgba(244,63,94,0.5)',   text: '#fb7185' },
+  teal:    { active: 'rgba(20,184,166,0.15)',  border: 'rgba(20,184,166,0.5)',  text: '#2dd4bf' },
+  indigo:  { active: 'rgba(99,102,241,0.15)',  border: 'rgba(99,102,241,0.5)',  text: '#818cf8' },
 }
 
 export default function MoodPicker({ selected, onSelect }) {
@@ -18,13 +25,13 @@ export default function MoodPicker({ selected, onSelect }) {
       <div className="text-center mb-8">
         <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤二 · Step 2 of 3</div>
         <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>How Are You Feeling?</h2>
-        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Your energy shapes your fortune</p>
+        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Your energy shapes your fortune · 你的能量决定命运</p>
         <div className="gold-line w-24 mx-auto mt-3" />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {moods.map(mood => {
-          const c = colorStyles[mood.color]
+          const c = colorStyles[mood.color] || colorStyles.amber
           const isSelected = selected?.id === mood.id
           return (
             <button

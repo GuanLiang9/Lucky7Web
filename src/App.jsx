@@ -6,6 +6,7 @@ import MoodPicker from './components/MoodPicker.jsx'
 import DreamPicker from './components/DreamPicker.jsx'
 import NumberDisplay from './components/NumberDisplay.jsx'
 import PreviousDraws from './components/PreviousDraws.jsx'
+import HotNumbers from './components/HotNumbers.jsx'
 
 function SectionDivider({ label }) {
   return (
@@ -106,6 +107,8 @@ export default function App() {
           <GameSelector selected={gameType} onSelect={handleGameSelect} />
           <MoodPicker selected={mood} onSelect={handleMoodSelect} />
           <DreamPicker selected={selectedDreams} onToggle={handleDreamToggle} />
+
+          <HotNumbers gameType={gameType} />
 
           {/* Generate CTA */}
           <div className="text-center px-6 mb-14">
