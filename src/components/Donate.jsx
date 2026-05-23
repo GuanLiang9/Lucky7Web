@@ -21,7 +21,7 @@ function buildPayNowQR(mobile) {
 
   const tag26content =
     tlv('00', 'SG.PAYNOW') +
-    tlv('01', '0') +        // 0 = mobile number
+    tlv('01', '1') +        // 1 = mobile number
     tlv('02', proxy) +
     tlv('03', '1') +        // 1 = payer enters amount
     tlv('04', '')           // no expiry
