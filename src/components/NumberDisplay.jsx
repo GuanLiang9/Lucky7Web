@@ -8,6 +8,38 @@ import {
   predictNumbersToto,
 } from '../utils/numberGenerator.js'
 
+// 4D: Sun=0, Wed=3, Sat=6 | TOTO: Mon=1, Thu=4
+function nextDrawDate(days) {
+  const today = new Date()
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    if (days.includes(d.getDay())) return d
+  }
+}
+function fmtShort(d) {
+  return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+function nextDrawNo(draws, drawDays) {
+  if (!draws?.length) return null
+  const last = draws[0]
+  const lastDate = new Date(last.date)
+  const next = nextDrawDate(drawDays)
+  let count = 0
+  const d = new Date(lastDate)
+  d.setDate(d.getDate() + 1)
+  while (d <= next) {
+    if (drawDays.includes(d.getDay())) count++
+    d.setDate(d.getDate() + 1)
+  }
+  return String(parseInt(last.drawNo) + count)
+}
+function nextJackpot(drawsToto) {
+  if (!drawsToto?.length) return 'S$1,000,000+'
+  const last = drawsToto[0]
+  return last.winners ? 'S$1,000,000+' : last.jackpot + '+'
+}
+
 function DigitCard({ digit, onRefresh, position }) {
   const [flipping, setFlipping] = useState(false)
 
@@ -367,7 +399,9 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                 >
                   4D Numbers
                 </span>
-                <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>Next draw: Sun 24 May · Draw #4570</span>
+                <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
+                  {fmtShort(nextDrawDate([0,3,6]))} · Draw #{nextDrawNo(draws4D, [0,3,6])}
+                </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {fourDNumbers.map((num, i) => (
@@ -406,7 +440,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                   TOTO Numbers
                 </span>
                 <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                  Jackpot S$3,200,000 · Next draw: Mon 25 May
+                  Jackpot {nextJackpot(drawsToto)} · Next draw: {fmtShort(nextDrawDate([1,4]))}
                 </span>
               </div>
               <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} drawsToto={drawsToto} onUpdate={setTotoNumbers} />

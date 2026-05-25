@@ -18,7 +18,26 @@ function Lantern({ side }) {
   )
 }
 
-export default function Hero({ onStart }) {
+// 4D: Sun=0, Wed=3, Sat=6 | TOTO: Mon=1, Thu=4
+function nextDrawDate(days) {
+  const today = new Date()
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    if (days.includes(d.getDay())) return d
+  }
+}
+function fmtDate(d) {
+  return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+function nextJackpot(drawsToto) {
+  if (!drawsToto?.length) return 'S$1,000,000+'
+  const last = drawsToto[0]
+  if (!last.winners) return last.jackpot + '+'  // rolls over
+  return 'S$1,000,000+'                          // reset after a win
+}
+
+export default function Hero({ onStart, draws4D, drawsToto }) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-16 pb-16">
       <Lantern side="left" />
@@ -92,9 +111,9 @@ export default function Hero({ onStart }) {
         style={{ animation: 'fadeIn 0.8s ease-out 0.5s both' }}
       >
         {[
-          { label: 'Next 4D Draw', value: 'Wed, 25 May', icon: '🎰' },
-          { label: 'TOTO Jackpot', value: 'S$3,200,000', icon: '💰' },
-          { label: 'Next TOTO Draw', value: 'Thu, 26 May', icon: '🎱' },
+          { label: 'Next 4D Draw',   value: fmtDate(nextDrawDate([0,3,6])),  icon: '🎰' },
+          { label: 'TOTO Jackpot',   value: nextJackpot(drawsToto),           icon: '💰' },
+          { label: 'Next TOTO Draw', value: fmtDate(nextDrawDate([1,4])),     icon: '🎱' },
         ].map((s, i) => (
           <div
             key={s.label}
