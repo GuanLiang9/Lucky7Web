@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   generate4DNumbers,
   generateTotoNumbers,
@@ -74,77 +74,41 @@ function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) 
   )
 }
 
-const TOTO_TOP3 = [
-  { icon: '🥇', label: 'Top Pick 福', color: { bg: 'rgba(251,191,36,0.18)', border: 'rgba(251,191,36,0.55)', text: '#fbbf24', size: 68 } },
-  { icon: '🥈', label: 'Top Pick 发', color: { bg: 'rgba(203,213,225,0.12)', border: 'rgba(203,213,225,0.4)',  text: '#cbd5e1', size: 60 } },
-  { icon: '🥉', label: 'Top Pick 财', color: { bg: 'rgba(217,119,6,0.15)',  border: 'rgba(217,119,6,0.45)',   text: '#d97706', size: 60 } },
-]
-
-function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
-  const [swapping, setSwapping] = useState(null)
+// One row of 6 Toto numbers. Tracks swapping by VALUE so re-sorting doesn't
+// animate the wrong ball.
+function TotoSetRow({ numbers, setIndex, mood, dreams, drawsToto, onUpdate }) {
+  const [swappingValue, setSwappingValue] = useState(null)
 
   const handleSwap = (index) => {
-    if (swapping !== null) return
-    setSwapping(index)
+    if (swappingValue !== null) return
+    const value = numbers[index]
+    setSwappingValue(value)
     setTimeout(() => {
       const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams.map(d => d.seed), drawsToto)
-      onUpdate(updated)
-      setSwapping(null)
+      onUpdate(setIndex, updated)
+      setSwappingValue(null)
     }, 400)
   }
 
-  const top3   = numbers.slice(0, 3)
-  const others = numbers.slice(3)
+  const setLabels = ['福 Lucky', '发 Bonus', '财 Wealth', '喜 Fortune']
+  const label = setLabels[setIndex] || `Line ${setIndex + 1}`
 
   return (
-    <div className="glass-strong rounded-2xl p-5">
-      {/* Top 3 picks */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {top3.map((n, i) => {
-          const meta = TOTO_TOP3[i]
-          return (
-            <button
-              key={i}
-              onClick={() => handleSwap(i)}
-              className="flex flex-col items-center rounded-2xl p-3 sm:p-4 transition-all active:scale-95"
-              style={{
-                background: meta.color.bg,
-                border: `1px solid ${meta.color.border}`,
-                opacity: swapping === i ? 0.4 : 1,
-                animation: swapping === i ? 'spin 0.4s linear' : undefined,
-              }}
-              title="Click to swap"
-            >
-              <span className="text-sm mb-1">{meta.icon}</span>
-              <span
-                className="font-black text-2xl sm:text-3xl leading-none mb-1.5"
-                style={{ color: meta.color.text, fontVariantNumeric: 'tabular-nums' }}
-              >
-                {n}
-              </span>
-              <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                {meta.label}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Remaining 3 picks */}
-      <div
-        className="rounded-xl p-3 mb-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-      >
-        <div className="text-xs uppercase tracking-widest text-center mb-3" style={{ color: 'rgba(251,191,36,0.4)' }}>
-          Additional Picks
+    <div className="glass-strong rounded-2xl p-4">
+      <div className="flex items-center gap-4">
+        <div
+          className="text-xs font-bold uppercase tracking-widest shrink-0 text-right"
+          style={{ color: 'rgba(251,191,36,0.55)', minWidth: '3.5rem' }}
+        >
+          {label}
         </div>
-        <div className="flex justify-center gap-2">
-          {others.map((n, i) => (
+        <div className="flex gap-2 flex-wrap flex-1 justify-center sm:justify-start">
+          {numbers.map((n, i) => (
             <button
-              key={i + 3}
-              onClick={() => handleSwap(i + 3)}
-              className="toto-ball w-11 h-11 sm:w-12 sm:h-12 rounded-full font-black text-base sm:text-lg flex items-center justify-center"
-              style={swapping === i + 3 ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
+              key={n}
+              onClick={() => handleSwap(i)}
+              className="toto-ball w-11 h-11 sm:w-12 sm:h-12 rounded-full font-black text-base sm:text-lg flex items-center justify-center transition-all active:scale-95"
+              style={swappingValue === n ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
               title="Click to swap"
             >
               <span className="gradient-text-gold">{n}</span>
@@ -152,15 +116,8 @@ function TotoDisplay({ numbers, mood, dreams, drawsToto, onUpdate }) {
           ))}
         </div>
       </div>
-
-      <div className="text-xs text-center mb-3" style={{ color: 'rgba(250,245,240,0.2)' }}>
-        click any number to swap it
-      </div>
-      <div
-        className="rounded-xl p-3 text-center"
-        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
-      >
-        <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
+      <div className="text-xs text-center mt-2" style={{ color: 'rgba(250,245,240,0.2)' }}>
+        click any number to swap
       </div>
     </div>
   )
@@ -183,7 +140,6 @@ function GeneratingState() {
         >
           {symbols[frame]}
         </div>
-        {/* Ripple */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -200,17 +156,27 @@ function GeneratingState() {
 
 export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto, sessionSeed }) {
   const [fourDNumbers, setFourDNumbers] = useState([])
-  const [totoNumbers, setTotoNumbers] = useState([])
+  const [totoSets, setTotoSets] = useState([])      // array of number[]
+  const [totoSetCount, setTotoSetCount] = useState(2)
+  const totoSetCountRef = useRef(2)
   const [generating, setGenerating] = useState(false)
 
   const generate = useCallback(() => {
     setGenerating(true)
     setFourDNumbers([])
-    setTotoNumbers([])
+    setTotoSets([])
     setTimeout(() => {
       const dreamSeeds = dreams.map(d => d.seed)
-      if (gameType === '4d' || gameType === 'both') setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey, sessionSeed))
-      if (gameType === 'toto' || gameType === 'both') setTotoNumbers(generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey, sessionSeed))
+      if (gameType === '4d' || gameType === 'both')
+        setFourDNumbers(generate4DNumbers(mood, dreamSeeds, draws4D, regenerateKey, sessionSeed))
+      if (gameType === 'toto' || gameType === 'both') {
+        const count = totoSetCountRef.current
+        setTotoSets(
+          Array.from({ length: count }, (_, i) =>
+            generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey * 10 + i, sessionSeed)
+          )
+        )
+      }
       setGenerating(false)
     }, 1600)
   }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed])
@@ -218,6 +184,22 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
   useEffect(() => {
     if (visible) generate()
   }, [visible, generate])
+
+  const handleSetCountChange = (count) => {
+    totoSetCountRef.current = count
+    setTotoSetCount(count)
+    if (totoSets.length === 0) return
+
+    if (count > totoSets.length) {
+      const dreamSeeds = dreams.map(d => d.seed)
+      const extra = Array.from({ length: count - totoSets.length }, (_, i) =>
+        generateTotoNumbers(mood, dreamSeeds, drawsToto, regenerateKey * 10 + totoSets.length + i + 50, sessionSeed)
+      )
+      setTotoSets(prev => [...prev, ...extra])
+    } else {
+      setTotoSets(prev => prev.slice(0, count))
+    }
+  }
 
   if (!visible) return null
 
@@ -287,20 +269,67 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
           )}
 
           {/* TOTO */}
-          {(gameType === 'toto' || gameType === 'both') && totoNumbers.length > 0 && (
+          {(gameType === 'toto' || gameType === 'both') && totoSets.length > 0 && (
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <span
-                  className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
-                  style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
-                >
-                  TOTO Numbers
-                </span>
-                <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                  Jackpot S$3,200,000 · Next draw: Mon 25 May
-                </span>
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
+                    style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
+                  >
+                    TOTO Numbers
+                  </span>
+                  <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
+                    Jackpot S$3,200,000 · Next draw: Mon 25 May
+                  </span>
+                </div>
+
+                {/* Lines selector */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs mr-1" style={{ color: 'rgba(250,245,240,0.35)' }}>Lines:</span>
+                  {[2, 3, 4].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => handleSetCountChange(n)}
+                      className="rounded-full px-3 py-1 text-xs font-bold transition-all"
+                      style={totoSetCount === n ? {
+                        background: 'rgba(251,191,36,0.2)',
+                        border: '1px solid rgba(251,191,36,0.6)',
+                        color: '#fbbf24',
+                      } : {
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        color: 'rgba(250,245,240,0.4)',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <TotoDisplay numbers={totoNumbers} mood={mood} dreams={dreams} drawsToto={drawsToto} onUpdate={setTotoNumbers} />
+
+              <div className="space-y-3">
+                {totoSets.map((numbers, setIdx) => (
+                  <TotoSetRow
+                    key={setIdx}
+                    numbers={numbers}
+                    setIndex={setIdx}
+                    mood={mood}
+                    dreams={dreams}
+                    drawsToto={drawsToto}
+                    onUpdate={(idx, updated) =>
+                      setTotoSets(prev => { const s = [...prev]; s[idx] = updated; return s })
+                    }
+                  />
+                ))}
+              </div>
+
+              <div
+                className="mt-3 rounded-xl p-3 text-center"
+                style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
+              >
+                <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
+              </div>
             </div>
           )}
 
