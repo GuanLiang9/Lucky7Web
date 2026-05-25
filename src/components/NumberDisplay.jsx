@@ -434,7 +434,6 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs mr-1" style={{ color: 'rgba(250,245,240,0.35)' }}>Lines:</span>
                   {[2, 3, 4].map(n => (
                     <button
                       key={n}
@@ -450,7 +449,7 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
                         color: 'rgba(250,245,240,0.4)',
                       }}
                     >
-                      {n}
+                      Match {n}
                     </button>
                   ))}
                 </div>
