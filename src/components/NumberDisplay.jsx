@@ -10,7 +10,8 @@ import {
   predictNumbersToto,
 } from '../utils/numberGenerator.js'
 
-// 4D: Sun=0, Wed=3, Sat=6 | TOTO: Mon=1, Thu=4
+// ── Draw-date helpers ─────────────────────────────────────────────────────────
+
 function nextDrawDate(days) {
   const today = new Date()
   for (let i = 1; i <= 7; i++) {
@@ -25,10 +26,9 @@ function fmtShort(d) {
 function nextDrawNo(draws, drawDays) {
   if (!draws?.length) return null
   const last = draws[0]
-  const lastDate = new Date(last.date)
   const next = nextDrawDate(drawDays)
   let count = 0
-  const d = new Date(lastDate)
+  const d = new Date(last.date)
   d.setDate(d.getDate() + 1)
   while (d <= next) {
     if (drawDays.includes(d.getDay())) count++
@@ -42,16 +42,37 @@ function nextJackpot(drawsToto) {
   return last.winners ? 'S$1,000,000+' : last.jackpot + '+'
 }
 
-function DigitCard({ digit, onRefresh, position }) {
+// ── Slot-machine digit ────────────────────────────────────────────────────────
+
+function SlotDigit({ finalDigit, spinDelay, onRefresh, position, interactive }) {
+  const [display, setDisplay]   = useState('0')
+  const [phase, setPhase]       = useState('waiting') // waiting | spinning | locked
   const [flipping, setFlipping] = useState(false)
 
+  useEffect(() => {
+    setDisplay('0')
+    setPhase('waiting')
+    let spinInterval
+
+    const startTimer = setTimeout(() => {
+      setPhase('spinning')
+      spinInterval = setInterval(() => {
+        setDisplay(String(Math.floor(Math.random() * 10)))
+      }, 55)
+      setTimeout(() => {
+        clearInterval(spinInterval)
+        setDisplay(finalDigit)
+        setPhase('locked')
+      }, 520)
+    }, spinDelay)
+
+    return () => { clearTimeout(startTimer); clearInterval(spinInterval) }
+  }, [finalDigit, spinDelay])
+
   const handleClick = () => {
-    if (flipping) return
+    if (!interactive || phase !== 'locked' || flipping) return
     setFlipping(true)
-    setTimeout(() => {
-      onRefresh(position)
-      setFlipping(false)
-    }, 350)
+    setTimeout(() => { onRefresh(position); setFlipping(false) }, 350)
   }
 
   return (
@@ -60,31 +81,49 @@ function DigitCard({ digit, onRefresh, position }) {
         className="number-card rounded-lg flex items-center justify-center select-none"
         onClick={handleClick}
         style={{
-          width: 44,
-          height: 52,
-          ...(flipping ? {
+          width: 44, height: 52,
+          cursor: interactive && phase === 'locked' ? 'pointer' : 'default',
+          opacity: phase === 'waiting' ? 0 : 1,
+          transition: 'opacity 0.12s',
+          ...(phase === 'spinning' && {
+            filter: 'blur(0.8px)',
+            opacity: 0.65,
+          }),
+          ...(phase === 'locked' && flipping && {
             transform: 'rotateY(90deg) scale(0.9)',
             transition: 'transform 0.175s ease',
             opacity: 0.5,
-          } : {
-            transition: 'transform 0.175s ease',
           }),
         }}
-        title="Tap to change"
+        title={interactive && phase === 'locked' ? 'Tap to change' : undefined}
       >
-        <span className="gradient-text-gold font-black text-2xl">{digit}</span>
+        <span
+          className="font-black text-2xl"
+          style={{
+            fontVariantNumeric: 'tabular-nums',
+            ...(phase === 'spinning'
+              ? { color: '#fbbf24' }
+              : phase === 'locked' && !flipping
+              ? { animation: 'digitSnap 0.35s ease-out both', color: '#fde68a' }
+              : { color: '#fbbf24' }),
+          }}
+        >
+          {display}
+        </span>
       </div>
-      <span
-        className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ color: 'rgba(251,191,36,0.5)' }}
-      >
-        tap
-      </span>
+      {interactive && phase === 'locked' && (
+        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ color: 'rgba(251,191,36,0.5)' }}>
+          tap
+        </span>
+      )}
     </div>
   )
 }
 
-function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) {
+// ── 4D set ────────────────────────────────────────────────────────────────────
+
+function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate, revealDelay, interactive }) {
   const digits = number.split('')
 
   const handleDigitRefresh = (pos) => {
@@ -93,78 +132,75 @@ function FourDSet({ number, setIndex, label, mood, dreams, draws4D, onUpdate }) 
   }
 
   return (
-    <div className="glass-strong rounded-2xl p-4 text-center overflow-hidden">
+    <div
+      className="glass-strong rounded-2xl p-4 text-center overflow-hidden"
+      style={{ animation: `setSlideIn 0.45s ease-out ${revealDelay}ms both` }}
+    >
       <div className="text-xs uppercase tracking-widest mb-4" style={{ color: 'rgba(251,191,36,0.5)' }}>
         {label}
       </div>
       <div className="flex gap-1.5 justify-center mb-3">
         {digits.map((d, i) => (
-          <DigitCard key={i} digit={d} position={i} onRefresh={handleDigitRefresh} />
+          <SlotDigit
+            key={i}
+            finalDigit={d}
+            spinDelay={revealDelay + i * 160}
+            position={i}
+            onRefresh={handleDigitRefresh}
+            interactive={interactive}
+          />
         ))}
       </div>
-      <div className="text-xs" style={{ color: 'rgba(250,245,240,0.25)' }}>tap any digit to change</div>
+      <div className="text-xs" style={{ color: 'rgba(250,245,240,0.25)' }}>
+        {interactive ? 'tap any digit to change' : ''}
+      </div>
     </div>
   )
 }
 
-// One row of 6 TOTO numbers. Tracks swapping by VALUE so re-sorting after
-// a swap doesn't animate the wrong ball.
-function TotoSetRow({ numbers, setIndex, mood, dreams, drawsToto, onUpdate }) {
-  const [swappingValue, setSwappingValue] = useState(null)
+// ── TOTO ball (shared) ────────────────────────────────────────────────────────
 
-  const handleSwap = (index) => {
-    if (swappingValue !== null) return
-    const value = numbers[index]
-    setSwappingValue(value)
-    setTimeout(() => {
-      const updated = regenerateSingleTotoNumber(numbers, index, mood, dreams, drawsToto)
-      onUpdate(setIndex, updated)
-      setSwappingValue(null)
-    }, 400)
+function TotoBall({ number, index, onSwap, isSwapping, isRoll = false, delay = 0 }) {
+  if (isRoll) {
+    return (
+      <div
+        className="w-11 h-11 rounded-full font-black text-sm flex items-center justify-center"
+        style={{
+          background: 'rgba(139,92,246,0.18)',
+          border: '2px solid rgba(139,92,246,0.55)',
+          color: '#c4b5fd',
+          animation: `ballReveal 0.45s cubic-bezier(0.175,0.885,0.32,1.275) ${delay}ms both`,
+        }}
+      >
+        R
+      </div>
+    )
   }
 
-  const setLabels = ['福 Lucky', '发 Bonus', '财 Wealth', '喜 Fortune']
-  const label = setLabels[setIndex] || `Line ${setIndex + 1}`
-
   return (
-    <div className="glass-strong rounded-2xl p-4">
-      <div className="flex items-center gap-4">
-        <div
-          className="text-xs font-bold uppercase tracking-widest shrink-0 text-right"
-          style={{ color: 'rgba(251,191,36,0.55)', minWidth: '3.5rem' }}
-        >
-          {label}
-        </div>
-        <div className="flex gap-2 flex-wrap flex-1 justify-center sm:justify-start">
-          {numbers.map((n, i) => (
-            <button
-              key={n}
-              onClick={() => handleSwap(i)}
-              className="toto-ball w-11 h-11 sm:w-12 sm:h-12 rounded-full font-black text-base sm:text-lg flex items-center justify-center transition-all active:scale-95"
-              style={swappingValue === n ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
-              title="Click to swap"
-            >
-              <span className="gradient-text-gold">{n}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="text-xs text-center mt-2" style={{ color: 'rgba(250,245,240,0.2)' }}>
-        click any number to swap
-      </div>
-    </div>
+    <button
+      onClick={onSwap ? () => onSwap(index) : undefined}
+      className="toto-ball w-11 h-11 rounded-full font-black text-base flex items-center justify-center transition-all active:scale-95"
+      style={{
+        animation: `ballReveal 0.45s cubic-bezier(0.175,0.885,0.32,1.275) ${delay}ms both`,
+        ...(isSwapping && { opacity: 0.4, animation: 'spin 0.4s linear' }),
+      }}
+      title={onSwap ? 'Click to swap' : undefined}
+    >
+      <span className="gradient-text-gold">{number}</span>
+    </button>
   )
 }
+
+// ── TOTO result display ───────────────────────────────────────────────────────
 
 const SYSTEM_ENTRY_COST = { 7: 7, 8: 28, 9: 84, 10: 210, 11: 462, 12: 924 }
 
-function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, onUpdate }) {
+function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, onUpdate, interactive, revealKey }) {
   const [swappingIndex, setSwappingIndex] = useState(null)
 
   const handleSwap = (index) => {
-    if (swappingIndex !== null) return
-    // Don't swap the ROLL position in system-roll
-    if (totoResult.type === 'system-roll') return
+    if (!interactive || swappingIndex !== null || totoResult.type === 'system-roll') return
     setSwappingIndex(index)
     setTimeout(() => {
       const updated = regenerateSingleTotoNumber(totoResult.numbers, index, mood, dreams, drawsToto)
@@ -176,86 +212,78 @@ function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, on
   const typeLabel = totoResult.type === 'match'
     ? 'TOTO Match'
     : totoResult.type === 'system-roll'
-      ? 'System Roll'
-      : totoConfig.size === 6
-        ? 'Ordinary'
-        : `System ${totoConfig.size}`
+    ? 'System Roll'
+    : totoConfig.size === 6 ? 'Ordinary' : `System ${totoConfig.size}`
 
   const costHint = totoResult.type === 'match'
     ? `Match ${totoConfig.count} · Pick ${totoConfig.count} numbers to appear in the draw result`
     : totoResult.type === 'system-roll'
-      ? 'System Roll · S$1 per entry'
-      : totoConfig.size === 6
-        ? 'Ordinary · S$1 per entry'
-        : `System ${totoConfig.size} · S$${SYSTEM_ENTRY_COST[totoConfig.size] || '?'} per entry`
+    ? 'System Roll · S$1 per entry · Computer picks 1 number for you'
+    : totoConfig.size === 6
+    ? 'Ordinary · S$1 per entry'
+    : `System ${totoConfig.size} · S$${SYSTEM_ENTRY_COST[totoConfig.size] || '?'} per entry`
+
+  const balls = totoResult.numbers
+  const BALL_GAP = totoResult.type === 'match' ? 320 : 200
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <span
-          className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
-          style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
-        >
+        <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
+          style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}>
           TOTO Numbers
         </span>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-semibold"
-          style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)', color: 'rgba(251,191,36,0.7)' }}
-        >
+        <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
+          style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)', color: 'rgba(251,191,36,0.7)' }}>
           {typeLabel}
         </span>
         <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-          Jackpot {nextJackpot(drawsToto)} · Next draw: {fmtShort(nextDrawDate([1,4]))}
+          Jackpot {nextJackpot(drawsToto)} · Next draw: {fmtShort(nextDrawDate([1, 4]))}
         </span>
       </div>
 
-      <div className="glass-strong rounded-2xl p-5">
+      <div key={revealKey} className="glass-strong rounded-2xl p-5">
         <div className="flex gap-2 flex-wrap justify-center">
-          {totoResult.numbers.map((n, i) => (
-            <button
+          {balls.map((n, i) => (
+            <TotoBall
               key={i}
-              onClick={() => handleSwap(i)}
-              className="toto-ball w-11 h-11 rounded-full font-black text-base flex items-center justify-center transition-all active:scale-95"
-              style={swappingIndex === i ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
-              title={totoResult.type === 'system-roll' ? undefined : 'Click to swap'}
-            >
-              <span className="gradient-text-gold">{n}</span>
-            </button>
+              number={n}
+              index={i}
+              onSwap={interactive ? handleSwap : null}
+              isSwapping={swappingIndex === i}
+              delay={i * BALL_GAP}
+            />
           ))}
           {totoResult.type === 'system-roll' && (
-            <div
-              className="w-11 h-11 rounded-full font-black text-sm flex items-center justify-center"
-              style={{
-                background: 'rgba(139,92,246,0.18)',
-                border: '2px solid rgba(139,92,246,0.55)',
-                color: '#c4b5fd',
-              }}
-            >
-              R
-            </div>
+            <TotoBall isRoll delay={balls.length * BALL_GAP} />
           )}
         </div>
+
         <div className="text-xs text-center mt-3" style={{ color: 'rgba(250,245,240,0.3)' }}>
           {costHint}
         </div>
-        {totoResult.type !== 'system-roll' && (
+        {interactive && totoResult.type !== 'system-roll' && (
           <div className="text-xs text-center mt-1" style={{ color: 'rgba(250,245,240,0.18)' }}>
             click any number to swap
           </div>
         )}
       </div>
 
-      <div
-        className="mt-3 rounded-xl p-3 text-center"
-        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
-      >
-        <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
+      <div className="mt-3 rounded-xl p-3 text-center"
+        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}>
+        <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>
+          {totoResult.type === 'match'
+            ? `Win if your ${totoConfig.count} numbers all appear in the 6+1 draw result`
+            : 'Match 3+ numbers to win · Bonus ball drawn separately'}
+        </p>
       </div>
     </div>
   )
 }
 
-function GeneratingState() {
+// ── Generating state ──────────────────────────────────────────────────────────
+
+function GeneratingState({ fadingOut }) {
   const symbols = ['🔮', '🏮', '🧧', '🌟', '💫']
   const [frame, setFrame] = useState(0)
   useEffect(() => {
@@ -264,12 +292,16 @@ function GeneratingState() {
   }, [])
 
   return (
-    <div className="text-center py-24">
+    <div
+      className="text-center py-24"
+      style={fadingOut ? { animation: 'fadeOut 0.3s ease-out both' } : {}}
+    >
       <div className="relative inline-block mb-6">
         <div className="text-7xl" style={{ display: 'inline-block', animation: 'float 2s ease-in-out infinite' }}>
           {symbols[frame]}
         </div>
-        <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(220,38,38,0.4)', animation: 'ripple 1.5s ease-out infinite' }} />
+        <div className="absolute inset-0 rounded-full"
+          style={{ border: '2px solid rgba(220,38,38,0.4)', animation: 'ripple 1.5s ease-out infinite' }} />
       </div>
       <div className="text-lg font-semibold" style={{ color: '#fbbf24' }}>Reading the cosmic signs...</div>
       <div className="mt-2 text-sm" style={{ color: 'rgba(250,245,240,0.3)' }}>Channelling your fortune</div>
@@ -277,21 +309,18 @@ function GeneratingState() {
   )
 }
 
+// ── Prediction panel ──────────────────────────────────────────────────────────
+
 function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
-  const hasMood = Boolean(mood)
+  const hasMood    = Boolean(mood)
   const dreamCount = dreams?.length || 0
   const influenced = hasMood || dreamCount > 0
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ background: 'rgba(99,62,180,0.06)', border: '1px solid rgba(139,92,246,0.18)' }}
-    >
-      {/* Header */}
-      <div
-        className="px-5 py-3.5 flex items-center gap-3"
-        style={{ borderBottom: '1px solid rgba(139,92,246,0.1)', background: 'rgba(99,62,180,0.06)' }}
-      >
+    <div className="rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(99,62,180,0.06)', border: '1px solid rgba(139,92,246,0.18)' }}>
+      <div className="px-5 py-3.5 flex items-center gap-3"
+        style={{ borderBottom: '1px solid rgba(139,92,246,0.1)', background: 'rgba(99,62,180,0.06)' }}>
         <span className="text-base">🔮</span>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold" style={{ color: '#c4b5fd' }}>Prize Prediction · 奖号预测</div>
@@ -307,15 +336,12 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
             )}
           </div>
         </div>
-        <span
-          className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-          style={{ background: 'rgba(139,92,246,0.12)', color: 'rgba(196,181,253,0.8)', border: '1px solid rgba(139,92,246,0.25)' }}
-        >
+        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+          style={{ background: 'rgba(139,92,246,0.12)', color: 'rgba(196,181,253,0.8)', border: '1px solid rgba(139,92,246,0.25)' }}>
           {influenced ? 'Personalised' : 'Statistical'}
         </span>
       </div>
 
-      {/* 4D prediction */}
       {pred4D && (gameType === '4d' || gameType === 'both') && (
         <div className="px-5 pt-4 pb-3">
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(196,181,253,0.5)' }}>
@@ -323,17 +349,9 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {pred4D.numbers.map((n, i) => (
-              <div
-                key={i}
-                className="rounded-xl px-3 py-1.5 font-black text-lg"
-                style={{
-                  background: 'rgba(139,92,246,0.1)',
-                  border: '1px solid rgba(139,92,246,0.3)',
-                  color: '#c4b5fd',
-                  fontVariantNumeric: 'tabular-nums',
-                  letterSpacing: '0.05em',
-                }}
-              >
+              <div key={i} className="rounded-xl px-3 py-1.5 font-black text-lg"
+                style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
+                  color: '#c4b5fd', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.05em' }}>
                 {n}
               </div>
             ))}
@@ -353,12 +371,10 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
         </div>
       )}
 
-      {/* Divider between 4D and TOTO */}
       {pred4D && predToto && gameType === 'both' && (
         <div style={{ height: 1, background: 'rgba(139,92,246,0.08)', margin: '0 20px' }} />
       )}
 
-      {/* TOTO prediction */}
       {predToto && (gameType === 'toto' || gameType === 'both') && (
         <div className="px-5 pt-4 pb-3">
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(196,181,253,0.5)' }}>
@@ -366,11 +382,8 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {predToto.numbers.map((n, i) => (
-              <div
-                key={i}
-                className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm"
-                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#c4b5fd' }}
-              >
+              <div key={i} className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm"
+                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#c4b5fd' }}>
                 {n}
               </div>
             ))}
@@ -390,21 +403,23 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
         </div>
       )}
 
-      {/* Footer note */}
-      <div
-        className="px-5 py-2.5 text-xs"
-        style={{ borderTop: '1px solid rgba(139,92,246,0.08)', background: 'rgba(0,0,0,0.12)', color: 'rgba(250,245,240,0.18)' }}
-      >
+      <div className="px-5 py-2.5 text-xs"
+        style={{ borderTop: '1px solid rgba(139,92,246,0.08)', background: 'rgba(0,0,0,0.12)', color: 'rgba(250,245,240,0.18)' }}>
         Statistical pattern analysis only — lottery draws are truly random events.
       </div>
     </div>
   )
 }
 
+// ── Main component ────────────────────────────────────────────────────────────
+
 export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto, sessionSeed, totoConfig }) {
-  const [fourDNumbers, setFourDNumbers] = useState([])
-  const [totoResult, setTotoResult] = useState(null)
-  const [generating, setGenerating] = useState(false)
+  const [fourDNumbers, setFourDNumbers]   = useState([])
+  const [totoResult,   setTotoResult]     = useState(null)
+  const [generating,   setGenerating]     = useState(false)
+  const [fadingOut,    setFadingOut]      = useState(false)
+  const [interactive,  setInteractive]    = useState(false)
+  const [revealKey,    setRevealKey]      = useState(0)
 
   const pred4D = useMemo(
     () => (gameType === '4d' || gameType === 'both') ? predictNumbers4D(draws4D, mood, dreams) : null,
@@ -417,26 +432,49 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
 
   const generate = useCallback(() => {
     setGenerating(true)
+    setFadingOut(false)
+    setInteractive(false)
     setFourDNumbers([])
     setTotoResult(null)
+
     setTimeout(() => {
+      // Compute numbers
+      let fourd = []
+      let toto  = null
       if (gameType === '4d' || gameType === 'both')
-        setFourDNumbers(generate4DNumbers(mood, dreams, draws4D, regenerateKey, sessionSeed))
+        fourd = generate4DNumbers(mood, dreams, draws4D, regenerateKey, sessionSeed)
       if (gameType === 'toto' || gameType === 'both') {
         if (totoConfig.mode === 'ordinary') {
           if (totoConfig.size === 'system-roll') {
             const res = generateSystemRollNumbers(mood, dreams, drawsToto, regenerateKey, sessionSeed)
-            setTotoResult({ type: 'system-roll', numbers: res.numbers })
+            toto = { type: 'system-roll', numbers: res.numbers }
           } else {
             const nums = generateTotoNumbers(mood, dreams, drawsToto, regenerateKey, sessionSeed, totoConfig.size)
-            setTotoResult({ type: 'ordinary', numbers: nums })
+            toto = { type: 'ordinary', numbers: nums }
           }
         } else {
           const nums = generateTotoMatchNumbers(mood, dreams, drawsToto, totoConfig.count, regenerateKey, sessionSeed)
-          setTotoResult({ type: 'match', numbers: nums })
+          toto = { type: 'match', numbers: nums }
         }
       }
-      setGenerating(false)
+
+      // Fade out spinner, then reveal numbers
+      setFadingOut(true)
+      setTimeout(() => {
+        setFourDNumbers(fourd)
+        setTotoResult(toto)
+        setRevealKey(k => k + 1)
+        setGenerating(false)
+        setFadingOut(false)
+
+        // Unlock interaction after all reveal animations finish
+        const ballCount   = toto ? toto.numbers.length + (toto.type === 'system-roll' ? 1 : 0) : 0
+        const ballGap     = toto?.type === 'match' ? 320 : 200
+        const totoReveal  = ballCount * ballGap + 600
+        const fourdReveal = fourd.length > 0 ? (fourd.length - 1) * 750 + 3 * 160 + 520 + 200 : 0
+        const unlockMs    = Math.max(totoReveal, fourdReveal)
+        setTimeout(() => setInteractive(true), unlockMs)
+      }, 300)
     }, 1600)
   }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed, totoConfig])
 
@@ -448,12 +486,11 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
 
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-16" style={{ animation: 'slideUp 0.6s ease-out both' }}>
+
       {/* Header */}
       <div className="text-center mb-10">
-        <div
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2 mb-4"
-          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)' }}
-        >
+        <div className="inline-flex items-center gap-2 rounded-full px-5 py-2 mb-4"
+          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)' }}>
           <span className="text-sm">🏮</span>
           <span className="text-xs uppercase tracking-widest font-bold" style={{ color: '#fbbf24' }}>
             Your Fortune Numbers
@@ -466,43 +503,42 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
       </div>
 
       {generating ? (
-        <GeneratingState />
+        <GeneratingState fadingOut={fadingOut} />
       ) : (
         <div className="space-y-6">
+
           {/* 4D */}
           {(gameType === '4d' || gameType === 'both') && fourDNumbers.length > 0 && (
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span
-                  className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
-                  style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.4)', color: '#f87171' }}
-                >
+                <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
+                  style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.4)', color: '#f87171' }}>
                   4D Numbers
                 </span>
                 <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                  {fmtShort(nextDrawDate([0,3,6]))} · Draw #{nextDrawNo(draws4D, [0,3,6])}
+                  {fmtShort(nextDrawDate([0, 3, 6]))} · Draw #{nextDrawNo(draws4D, [0, 3, 6])}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {fourDNumbers.map((num, i) => (
                   <FourDSet
-                    key={i}
+                    key={`${revealKey}-${i}`}
                     number={num}
                     setIndex={i}
                     label={['Lucky Pick 福', 'Alternate 发', 'Alternate 财'][i]}
                     mood={mood}
                     dreams={dreams}
                     draws4D={draws4D}
+                    revealDelay={i * 750}
+                    interactive={interactive}
                     onUpdate={(idx, updated) =>
                       setFourDNumbers(prev => { const n = [...prev]; n[idx] = updated; return n })
                     }
                   />
                 ))}
               </div>
-              <div
-                className="mt-3 rounded-xl p-3 text-xs text-center"
-                style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.1)', color: 'rgba(250,245,240,0.35)' }}
-              >
+              <div className="mt-3 rounded-xl p-3 text-xs text-center"
+                style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.1)', color: 'rgba(250,245,240,0.35)' }}>
                 <strong style={{ color: 'rgba(250,245,240,0.5)' }}>Big Bet</strong> — any of 23 winning numbers &nbsp;|&nbsp;
                 <strong style={{ color: 'rgba(250,245,240,0.5)' }}>Small Bet</strong> — top 3 prizes only
               </div>
@@ -517,11 +553,13 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
               mood={mood}
               dreams={dreams}
               drawsToto={drawsToto}
+              interactive={interactive}
+              revealKey={revealKey}
               onUpdate={(updated) => setTotoResult(prev => ({ ...prev, numbers: updated }))}
             />
           )}
 
-          {/* Prize prediction panel */}
+          {/* Prize prediction */}
           {(pred4D || predToto) && (
             <PredictionPanel
               gameType={gameType}
@@ -533,10 +571,8 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
           )}
 
           {/* Disclaimer */}
-          <div
-            className="rounded-2xl p-4 text-center"
-            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.04)' }}
-          >
+          <div className="rounded-2xl p-4 text-center"
+            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.04)' }}>
             <p className="text-xs" style={{ color: 'rgba(250,245,240,0.2)' }}>
               Lucky7 generates numbers for <strong style={{ color: 'rgba(250,245,240,0.35)' }}>entertainment only</strong>. Lottery draws are independent random events.
             </p>
