@@ -228,7 +228,7 @@ export function generate4DNumbers(mood, dreams, draws4D, iteration = 0, sessionS
   })
 }
 
-export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0) {
+export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0, size = 6) {
   const seed = getSeed(mood, dreams, iteration, sessionSeed) + 555
   const rng = seededRandom(seed)
   const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
@@ -248,7 +248,61 @@ export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sess
 
   const numbers = new Set()
   let attempts = 0
-  while (numbers.size < 6 && attempts < 500) {
+  while (numbers.size < size && attempts < 500) {
+    numbers.add(weightedPick(rng, weights) + 1)
+    attempts++
+  }
+  return Array.from(numbers).sort((a, b) => a - b)
+}
+
+export function generateSystemRollNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed) + 777
+  const rng = seededRandom(seed)
+  const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
+
+  lastDrawTotoNumbers(drawsToto).forEach(n => {
+    if (n >= 1 && n <= 49) weights[n - 1] = 0
+  })
+
+  const recentNums = new Set()
+  drawsToto?.slice(0, 2).forEach(d => {
+    ;(d.numbers || []).forEach(n => recentNums.add(n))
+    if (d.bonus) recentNums.add(d.bonus)
+  })
+  for (let i = 0; i < weights.length; i++) {
+    if (weights[i] > 0 && !recentNums.has(i + 1)) weights[i] = Math.round(weights[i] * 1.6)
+  }
+
+  const numbers = new Set()
+  let attempts = 0
+  while (numbers.size < 5 && attempts < 500) {
+    numbers.add(weightedPick(rng, weights) + 1)
+    attempts++
+  }
+  return { numbers: Array.from(numbers).sort((a, b) => a - b), systemRoll: true }
+}
+
+export function generateTotoMatchNumbers(mood, dreams, drawsToto, count, iteration = 0, sessionSeed = 0) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed) + 333
+  const rng = seededRandom(seed)
+  const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
+
+  lastDrawTotoNumbers(drawsToto).forEach(n => {
+    if (n >= 1 && n <= 49) weights[n - 1] = 0
+  })
+
+  const recentNums = new Set()
+  drawsToto?.slice(0, 2).forEach(d => {
+    ;(d.numbers || []).forEach(n => recentNums.add(n))
+    if (d.bonus) recentNums.add(d.bonus)
+  })
+  for (let i = 0; i < weights.length; i++) {
+    if (weights[i] > 0 && !recentNums.has(i + 1)) weights[i] = Math.round(weights[i] * 1.6)
+  }
+
+  const numbers = new Set()
+  let attempts = 0
+  while (numbers.size < count && attempts < 500) {
     numbers.add(weightedPick(rng, weights) + 1)
     attempts++
   }

@@ -27,6 +27,7 @@ function SectionDivider({ label }) {
 export default function App() {
   const [sessionSeed] = useState(() => Math.floor(Math.random() * 99991))
   const [gameType, setGameType] = useState(null)
+  const [totoConfig, setTotoConfig] = useState({ mode: 'ordinary', size: 6 })
   const [mood, setMood] = useState(null)
   const [selectedDreams, setSelectedDreams] = useState([])
   const [showNumbers, setShowNumbers] = useState(false)
@@ -69,6 +70,7 @@ export default function App() {
   }
   const handleGameSelect = (id) => { setGameType(id); resetNumbers() }
   const handleMoodSelect = (m)  => { setMood(m); resetNumbers() }
+  const handleTotoConfig = (cfg) => { setTotoConfig(cfg); resetNumbers() }
 
   const handleGenerate = () => {
     if (!gameType) return
@@ -130,7 +132,7 @@ export default function App() {
           <SectionDivider label="Your Fortune Session" />
 
           {/* Step 1: Game selector */}
-          <GameSelector selected={gameType} onSelect={handleGameSelect} />
+          <GameSelector selected={gameType} onSelect={handleGameSelect} totoConfig={totoConfig} onTotoConfig={handleTotoConfig} />
 
           {/* Generate CTA — shown right after game selection */}
           <div className="text-center px-6 mb-6">
@@ -204,13 +206,36 @@ export default function App() {
                 <div className="mt-6">
                   <MoodPicker selected={mood} onSelect={handleMoodSelect} />
                   <DreamPicker selected={selectedDreams} onToggle={handleDreamToggle} />
+                  <p className="text-xs text-center mt-2 mb-3" style={{ color: 'rgba(250,245,240,0.3)' }}>Ready? Generate your numbers</p>
+                  <div className="text-center">
+                    <button
+                      onClick={handleGenerate}
+                      disabled={!canGenerate}
+                      className="relative px-14 py-4 rounded-full font-black text-base uppercase tracking-widest text-white active:scale-95"
+                      style={canGenerate ? {
+                        background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                        boxShadow: showNumbers ? '0 0 60px rgba(220,38,38,0.5)' : '0 0 30px rgba(220,38,38,0.25)',
+                        transition: 'all 0.25s ease', cursor: 'pointer',
+                      } : {
+                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                        color: 'rgba(250,245,240,0.25)', cursor: 'not-allowed',
+                      }}
+                      onMouseEnter={e => { if (canGenerate) e.currentTarget.style.transform = 'scale(1.05)' }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+                    >
+                      <span className="flex items-center gap-2 justify-center">
+                        <span>{showNumbers ? '🔄' : '🏮'}</span>
+                        <span>{showNumbers ? 'Regenerate Fortune' : 'Reveal My Fortune'}</span>
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           <div ref={numbersRef}>
-            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} draws4D={draws4D} drawsToto={drawsToto} sessionSeed={sessionSeed} />
+            <NumberDisplay gameType={gameType} mood={mood} dreams={selectedDreams} visible={showNumbers} regenerateKey={regenerateKey} draws4D={draws4D} drawsToto={drawsToto} sessionSeed={sessionSeed} totoConfig={totoConfig} />
           </div>
 
           <HotNumbers gameType={gameType} draws4D={draws4D} drawsToto={drawsToto} />

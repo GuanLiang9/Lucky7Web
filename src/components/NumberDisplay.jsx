@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   generate4DNumbers,
   generateTotoNumbers,
+  generateSystemRollNumbers,
+  generateTotoMatchNumbers,
   regenerateSingle4DDigit,
   regenerateSingleTotoNumber,
   predictNumbers4D,
@@ -154,6 +156,105 @@ function TotoSetRow({ numbers, setIndex, mood, dreams, drawsToto, onUpdate }) {
   )
 }
 
+const SYSTEM_ENTRY_COST = { 7: 7, 8: 28, 9: 84, 10: 210, 11: 462, 12: 924 }
+
+function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, onUpdate }) {
+  const [swappingIndex, setSwappingIndex] = useState(null)
+
+  const handleSwap = (index) => {
+    if (swappingIndex !== null) return
+    // Don't swap the ROLL position in system-roll
+    if (totoResult.type === 'system-roll') return
+    setSwappingIndex(index)
+    setTimeout(() => {
+      const updated = regenerateSingleTotoNumber(totoResult.numbers, index, mood, dreams, drawsToto)
+      onUpdate(updated)
+      setSwappingIndex(null)
+    }, 400)
+  }
+
+  const typeLabel = totoResult.type === 'match'
+    ? 'TOTO Match'
+    : totoResult.type === 'system-roll'
+      ? 'System Roll'
+      : totoConfig.size === 6
+        ? 'Ordinary'
+        : `System ${totoConfig.size}`
+
+  const costHint = totoResult.type === 'match'
+    ? `Match ${totoConfig.count} · Pick ${totoConfig.count} numbers to appear in the draw result`
+    : totoResult.type === 'system-roll'
+      ? 'System Roll · S$1 per entry'
+      : totoConfig.size === 6
+        ? 'Ordinary · S$1 per entry'
+        : `System ${totoConfig.size} · S$${SYSTEM_ENTRY_COST[totoConfig.size] || '?'} per entry`
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <span
+          className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
+          style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
+        >
+          TOTO Numbers
+        </span>
+        <span
+          className="rounded-full px-2 py-0.5 text-xs font-semibold"
+          style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)', color: 'rgba(251,191,36,0.7)' }}
+        >
+          {typeLabel}
+        </span>
+        <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
+          Jackpot {nextJackpot(drawsToto)} · Next draw: {fmtShort(nextDrawDate([1,4]))}
+        </span>
+      </div>
+
+      <div className="glass-strong rounded-2xl p-5">
+        <div className="flex gap-2 flex-wrap justify-center">
+          {totoResult.numbers.map((n, i) => (
+            <button
+              key={i}
+              onClick={() => handleSwap(i)}
+              className="toto-ball w-11 h-11 rounded-full font-black text-base flex items-center justify-center transition-all active:scale-95"
+              style={swappingIndex === i ? { opacity: 0.4, animation: 'spin 0.4s linear' } : {}}
+              title={totoResult.type === 'system-roll' ? undefined : 'Click to swap'}
+            >
+              <span className="gradient-text-gold">{n}</span>
+            </button>
+          ))}
+          {totoResult.type === 'system-roll' && (
+            <div
+              className="w-11 h-11 rounded-full font-black text-sm flex items-center justify-center"
+              style={{
+                background: 'rgba(139,92,246,0.18)',
+                border: '2px solid rgba(139,92,246,0.55)',
+                color: '#c4b5fd',
+              }}
+            >
+              R
+            </div>
+          )}
+        </div>
+        <div className="text-xs text-center mt-3" style={{ color: 'rgba(250,245,240,0.3)' }}>
+          {costHint}
+        </div>
+        {totoResult.type !== 'system-roll' && (
+          <div className="text-xs text-center mt-1" style={{ color: 'rgba(250,245,240,0.18)' }}>
+            click any number to swap
+          </div>
+        )}
+      </div>
+
+      <div
+        className="mt-3 rounded-xl p-3 text-center"
+        style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
+      >
+        <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
+      </div>
+    </div>
+  )
+}
+
 function GeneratingState() {
   const symbols = ['🔮', '🏮', '🧧', '🌟', '💫']
   const [frame, setFrame] = useState(0)
@@ -300,11 +401,9 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
   )
 }
 
-export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto, sessionSeed }) {
+export default function NumberDisplay({ gameType, mood, dreams, visible, regenerateKey, draws4D, drawsToto, sessionSeed, totoConfig }) {
   const [fourDNumbers, setFourDNumbers] = useState([])
-  const [totoSets, setTotoSets] = useState([])
-  const [totoSetCount, setTotoSetCount] = useState(2)
-  const totoSetCountRef = useRef(2)
+  const [totoResult, setTotoResult] = useState(null)
   const [generating, setGenerating] = useState(false)
 
   const pred4D = useMemo(
@@ -319,39 +418,31 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
   const generate = useCallback(() => {
     setGenerating(true)
     setFourDNumbers([])
-    setTotoSets([])
+    setTotoResult(null)
     setTimeout(() => {
       if (gameType === '4d' || gameType === 'both')
         setFourDNumbers(generate4DNumbers(mood, dreams, draws4D, regenerateKey, sessionSeed))
       if (gameType === 'toto' || gameType === 'both') {
-        const count = totoSetCountRef.current
-        setTotoSets(
-          Array.from({ length: count }, (_, i) =>
-            generateTotoNumbers(mood, dreams, drawsToto, regenerateKey * 10 + i, sessionSeed)
-          )
-        )
+        if (totoConfig.mode === 'ordinary') {
+          if (totoConfig.size === 'system-roll') {
+            const res = generateSystemRollNumbers(mood, dreams, drawsToto, regenerateKey, sessionSeed)
+            setTotoResult({ type: 'system-roll', numbers: res.numbers })
+          } else {
+            const nums = generateTotoNumbers(mood, dreams, drawsToto, regenerateKey, sessionSeed, totoConfig.size)
+            setTotoResult({ type: 'ordinary', numbers: nums })
+          }
+        } else {
+          const nums = generateTotoMatchNumbers(mood, dreams, drawsToto, totoConfig.count, regenerateKey, sessionSeed)
+          setTotoResult({ type: 'match', numbers: nums })
+        }
       }
       setGenerating(false)
     }, 1600)
-  }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed])
+  }, [gameType, mood, dreams, draws4D, drawsToto, regenerateKey, sessionSeed, totoConfig])
 
   useEffect(() => {
     if (visible) generate()
   }, [visible, generate])
-
-  const handleSetCountChange = (count) => {
-    totoSetCountRef.current = count
-    setTotoSetCount(count)
-    if (totoSets.length === 0) return
-    if (count > totoSets.length) {
-      const extra = Array.from({ length: count - totoSets.length }, (_, i) =>
-        generateTotoNumbers(mood, dreams, drawsToto, regenerateKey * 10 + totoSets.length + i + 50, sessionSeed)
-      )
-      setTotoSets(prev => [...prev, ...extra])
-    } else {
-      setTotoSets(prev => prev.slice(0, count))
-    }
-  }
 
   if (!visible) return null
 
@@ -419,63 +510,15 @@ export default function NumberDisplay({ gameType, mood, dreams, visible, regener
           )}
 
           {/* TOTO */}
-          {(gameType === 'toto' || gameType === 'both') && totoSets.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <span
-                    className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest"
-                    style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
-                  >
-                    TOTO Numbers
-                  </span>
-                  <span className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                    Jackpot {nextJackpot(drawsToto)} · Next draw: {fmtShort(nextDrawDate([1,4]))}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {[2, 3, 4].map(n => (
-                    <button
-                      key={n}
-                      onClick={() => handleSetCountChange(n)}
-                      className="rounded-full px-3 py-1 text-xs font-bold transition-all"
-                      style={totoSetCount === n ? {
-                        background: 'rgba(251,191,36,0.2)',
-                        border: '1px solid rgba(251,191,36,0.6)',
-                        color: '#fbbf24',
-                      } : {
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: 'rgba(250,245,240,0.4)',
-                      }}
-                    >
-                      Match {n}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-3">
-                {totoSets.map((numbers, setIdx) => (
-                  <TotoSetRow
-                    key={setIdx}
-                    numbers={numbers}
-                    setIndex={setIdx}
-                    mood={mood}
-                    dreams={dreams}
-                    drawsToto={drawsToto}
-                    onUpdate={(idx, updated) =>
-                      setTotoSets(prev => { const s = [...prev]; s[idx] = updated; return s })
-                    }
-                  />
-                ))}
-              </div>
-              <div
-                className="mt-3 rounded-xl p-3 text-center"
-                style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}
-              >
-                <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>Match 3+ numbers to win · Bonus ball drawn separately</p>
-              </div>
-            </div>
+          {(gameType === 'toto' || gameType === 'both') && totoResult && (
+            <TotoResultDisplay
+              totoResult={totoResult}
+              totoConfig={totoConfig}
+              mood={mood}
+              dreams={dreams}
+              drawsToto={drawsToto}
+              onUpdate={(updated) => setTotoResult(prev => ({ ...prev, numbers: updated }))}
+            />
           )}
 
           {/* Prize prediction panel */}
