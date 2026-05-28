@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#3a0808"/>
+      <stop offset="100%" stop-color="#080202"/>
+    </radialGradient>
+    <radialGradient id="sevenGrad" cx="50%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="1 0.8 0 0 0  0.7 0.5 0 0 0  0 0 0 0 0  0 0 0 1 0" result="goldBlur"/>
+      <feMerge>
+        <feMergeNode in="goldBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="252" fill="url(#bgGrad)"/>
+
+  <!-- Outer ring - gold -->
+  <circle cx="256" cy="256" r="252" fill="none" stroke="#fbbf24" stroke-width="6" opacity="0.9"/>
+
+  <!-- Inner ring - red -->
+  <circle cx="256" cy="256" r="238" fill="none" stroke="#dc2626" stroke-width="3" opacity="0.6"/>
+
+  <!-- Decorative arc segments -->
+  <g opacity="0.4">
+    <path d="M256 22 A234 234 0 0 1 444 144" fill="none" stroke="#fbbf24" stroke-width="2"/>
+    <path d="M256 22 A234 234 0 0 0 68 144" fill="none" stroke="#fbbf24" stroke-width="2"/>
+  </g>
+
+  <!-- Small decorative stars (6-pointed) -->
+  <!-- Top -->
+  <g transform="translate(256, 68)" filter="url(#glow)">
+    <polygon points="0,-10 2.2,-3 9.5,-3 4,2 6.2,9.5 0,5.5 -6.2,9.5 -4,2 -9.5,-3 -2.2,-3" fill="#fbbf24" opacity="0.95"/>
+  </g>
+  <!-- Top-left -->
+  <g transform="translate(132, 112)" filter="url(#glow)">
+    <polygon points="0,-8 1.8,-2.5 7.6,-2.5 3.2,1.6 4.9,7.6 0,4.4 -4.9,7.6 -3.2,1.6 -7.6,-2.5 -1.8,-2.5" fill="#fbbf24" opacity="0.8"/>
+  </g>
+  <!-- Top-right -->
+  <g transform="translate(380, 112)" filter="url(#glow)">
+    <polygon points="0,-8 1.8,-2.5 7.6,-2.5 3.2,1.6 4.9,7.6 0,4.4 -4.9,7.6 -3.2,1.6 -7.6,-2.5 -1.8,-2.5" fill="#fbbf24" opacity="0.8"/>
+  </g>
+  <!-- Bottom-left -->
+  <g transform="translate(110, 360)" filter="url(#glow)">
+    <polygon points="0,-7 1.5,-2.2 6.6,-2.2 2.8,1.4 4.3,6.6 0,3.8 -4.3,6.6 -2.8,1.4 -6.6,-2.2 -1.5,-2.2" fill="#dc2626" opacity="0.8"/>
+  </g>
+  <!-- Bottom-right -->
+  <g transform="translate(402, 360)" filter="url(#glow)">
+    <polygon points="0,-7 1.5,-2.2 6.6,-2.2 2.8,1.4 4.3,6.6 0,3.8 -4.3,6.6 -2.8,1.4 -6.6,-2.2 -1.5,-2.2" fill="#dc2626" opacity="0.8"/>
+  </g>
+  <!-- Bottom -->
+  <g transform="translate(256, 438)" filter="url(#glow)">
+    <polygon points="0,-8 1.8,-2.5 7.6,-2.5 3.2,1.6 4.9,7.6 0,4.4 -4.9,7.6 -3.2,1.6 -7.6,-2.5 -1.8,-2.5" fill="#fbbf24" opacity="0.85"/>
+  </g>
+
+  <!-- LUCKY text above 7 -->
+  <text x="256" y="178"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    letter-spacing="14"
+    text-anchor="middle"
+    fill="#fbbf24"
+    opacity="0.95">LUCKY</text>
+
+  <!-- Main "7" -->
+  <text x="262" y="360"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="280"
+    font-weight="900"
+    text-anchor="middle"
+    fill="url(#sevenGrad)"
+    filter="url(#goldGlow)">7</text>
+
+  <!-- Subtle red underline / accent bar -->
+  <rect x="156" y="380" width="200" height="5" rx="2.5" fill="#dc2626" opacity="0.7"/>
+</svg>

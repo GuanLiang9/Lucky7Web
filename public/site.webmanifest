@@ -1,0 +1,30 @@
+{
+  "name": "Lucky7 — Singapore 4D & TOTO",
+  "short_name": "Lucky7",
+  "description": "Generate personalised lucky numbers for Singapore 4D and TOTO based on your mood and dreams.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080202",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
