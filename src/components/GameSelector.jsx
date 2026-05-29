@@ -69,6 +69,7 @@ const ordinaryOptions = [
 ]
 
 const matchOptions = [
+  { label: '1 Additional Number', count: 1 },
   { label: '2 Numbers', count: 2 },
   { label: '3 Numbers', count: 3 },
   { label: '4 Numbers', count: 4 },
@@ -181,7 +182,7 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                     className="rounded-full px-3 py-1 text-xs font-bold transition-all"
                     style={isActive ? activePill : inactivePill}
                   >
-                    {mode === 'ordinary' ? 'TOTO Ordinary' : 'TOTO Match'}
+                    {mode === 'ordinary' ? 'TOTO' : 'TOTO Match'}
                   </button>
                 )
               })}

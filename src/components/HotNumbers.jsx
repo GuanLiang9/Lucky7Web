@@ -1,27 +1,31 @@
 import React, { useState, useMemo } from 'react'
-import { previousDraws4D, previousDrawsToto, hot4DDigits, cold4DDigits, hotTotoNums, coldTotoNums } from '../data/previousDraws.js'
+import { previousDraws4D, previousDrawsToto } from '../data/previousDraws.js'
+import { TOTO_HIST, FOURD_HIST } from '../data/historicalStats.js'
 
 function computeHot4D(draws) {
-  const freq = {}
+  // Start with 10-year historical baseline; blend recent draws at 3× weight
+  const freq = FOURD_HIST.slice()
   draws.forEach(d => {
     const all = [d.first, d.second, d.third, ...(d.starters||[]), ...(d.consolation||[])]
-    all.forEach(n => n && n.split('').forEach(digit => { freq[digit] = (freq[digit] || 0) + 1 }))
+    all.forEach(n => n && n.split('').forEach(ch => { freq[parseInt(ch)] += 3 }))
   })
-  return Object.entries(freq).sort((a,b) => b[1]-a[1]).map(([d]) => d)
+  return freq.map((f, i) => [String(i), f]).sort((a, b) => b[1] - a[1]).map(([d]) => d)
 }
 
 function computeHotToto(draws) {
-  const freq = {}
+  // Start with 10-year historical baseline; blend recent draws at 5× weight
+  const freq = TOTO_HIST.slice()
   draws.forEach(d => {
     ;(d.numbers || []).forEach(n => {
-      if (n >= 1 && n <= 49) freq[n] = (freq[n] || 0) + 1
+      if (n >= 1 && n <= 49) freq[n] += 5
     })
-    if (d.bonus >= 1 && d.bonus <= 49) freq[d.bonus] = (freq[d.bonus] || 0) + 0.5
+    if (d.bonus >= 1 && d.bonus <= 49) freq[d.bonus] += 2
   })
-  return Object.entries(freq)
+  return freq.slice(1)
+    .map((f, i) => [i + 1, f])
     .sort((a, b) => b[1] - a[1])
-    .map(([n]) => parseInt(n))
-    .filter(n => n >= 1 && n <= 49)
+    .filter(([n]) => n >= 1 && n <= 49)
+    .map(([n]) => n)
 }
 
 function Badge({ label, color }) {
@@ -161,7 +165,7 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
       </div>
 
       <p className="text-xs mt-4" style={{ color: 'rgba(250,245,240,0.2)' }}>
-        Based on last {gameType === 'toto' ? '6' : '5'} draws · Past frequency does not guarantee future results
+        Based on 10+ years of historical draws · Past frequency does not guarantee future results
       </p>
     </div>
   )

@@ -1,3 +1,5 @@
+import { TOTO_HIST, FOURD_HIST } from '../data/historicalStats.js'
+
 // ── Core hash / PRNG ─────────────────────────────────────────────────────────
 
 function mix32(a, b) {
@@ -351,7 +353,8 @@ export function regenerateSingleTotoNumber(currentNumbers, index, mood, dreams, 
 export function predictNumbers4D(draws4D, mood = null, dreams = []) {
   if (!draws4D?.length) return null
 
-  const digitFreq = new Array(10).fill(0)
+  // Start with 10-year historical baseline, then add recent draw counts
+  const digitFreq = FOURD_HIST.slice()
   const digitRecent = new Array(10).fill(0)
 
   draws4D.forEach((d, idx) => {
@@ -364,12 +367,12 @@ export function predictNumbers4D(draws4D, mood = null, dreams = []) {
   })
 
   const hot = digitFreq
-    .map((f, i) => ({ digit: i, score: digitRecent[i] * 2 + f }))
+    .map((f, i) => ({ digit: i, score: digitRecent[i] * 200 + f }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 4).map(x => x.digit)
 
   const cold = digitFreq
-    .map((f, i) => ({ digit: i, score: digitRecent[i] * 3 + f }))
+    .map((f, i) => ({ digit: i, score: digitRecent[i] * 200 + f }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 4).map(x => x.digit)
 
@@ -402,7 +405,8 @@ export function predictNumbers4D(draws4D, mood = null, dreams = []) {
 export function predictNumbersToto(drawsToto, mood = null, dreams = []) {
   if (!drawsToto?.length) return null
 
-  const freq = new Array(50).fill(0)
+  // Start with 10-year historical baseline for each number 1–49
+  const freq = TOTO_HIST.slice()
   const lastSeen = new Array(50).fill(drawsToto.length)
 
   drawsToto.forEach((d, drawIdx) => {
@@ -459,8 +463,13 @@ export function predictNumbersToto(drawsToto, mood = null, dreams = []) {
   }
   candidates.forEach(x => { if (chosen.size < 6 && x.score > 0) chosen.add(x.num) })
 
+  // Predict the additional number from remaining candidates (excluding chosen 6)
+  const additionalCandidate = candidates.find(x => !chosen.has(x.num) && x.score > 0)
+  const additionalNumber = additionalCandidate?.num || null
+
   return {
     numbers: Array.from(chosen).sort((a, b) => a - b),
+    additionalNumber,
     hot: hot.slice(0, 4),
     cold: cold.slice(0, 4),
     drawsAnalyzed: drawsToto.length,

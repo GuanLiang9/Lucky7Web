@@ -216,7 +216,7 @@ function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, on
     : totoConfig.size === 6 ? 'Ordinary' : `System ${totoConfig.size}`
 
   const costHint = totoResult.type === 'match'
-    ? `Match ${totoConfig.count} · Pick ${totoConfig.count} numbers to appear in the draw result`
+    ? `Match ${totoConfig.count} · Pick ${totoConfig.count} ${totoConfig.count === 1 ? 'number' : 'numbers'} to appear in the draw result`
     : totoResult.type === 'system-roll'
     ? 'System Roll · S$1 per entry · Computer picks 1 number for you'
     : totoConfig.size === 6
@@ -273,7 +273,7 @@ function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, drawsToto, on
         style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.1)' }}>
         <p className="text-xs" style={{ color: 'rgba(250,245,240,0.4)' }}>
           {totoResult.type === 'match'
-            ? `Win if your ${totoConfig.count} numbers all appear in the 6+1 draw result`
+            ? `Win if your ${totoConfig.count} ${totoConfig.count === 1 ? 'number appears' : 'numbers all appear'} in the 6+1 draw result`
             : 'Match 3+ numbers to win · Bonus ball drawn separately'}
         </p>
       </div>
@@ -380,14 +380,28 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams }) {
           <div className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(196,181,253,0.5)' }}>
             TOTO · Predicted Numbers
           </div>
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-1">
             {predToto.numbers.map((n, i) => (
               <div key={i} className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm"
                 style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#c4b5fd' }}>
                 {n}
               </div>
             ))}
+            {predToto.additionalNumber && (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm"
+                style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.4)', color: '#fca5a5' }}
+                title="Predicted additional number"
+              >
+                {predToto.additionalNumber}
+              </div>
+            )}
           </div>
+          {predToto.additionalNumber && (
+            <div className="text-xs mb-2" style={{ color: 'rgba(250,245,240,0.25)' }}>
+              <span style={{ color: 'rgba(220,38,38,0.6)' }}>●</span> Additional number
+            </div>
+          )}
           <div className="flex gap-5 text-xs">
             <div className="flex items-center gap-1.5">
               <span>🔥</span>
