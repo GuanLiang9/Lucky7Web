@@ -43,78 +43,160 @@ function nextJackpot(drawsToto) {
   return last.winners ? 'S$1,000,000+' : last.jackpot + '+'
 }
 
-// ── Slot-machine digit — SLOWER ───────────────────────────────────────────────
+// ── Jackpot slot reel ────────────────────────────────────────────────────────
+// Phases: waiting → fast (50ms) → slowing (140ms) → countdown (3 lead-in digits) → locked
+// The "countdown" rolls through the 3 preceding digits before snapping to the final.
 
-function SlotDigit({ finalDigit, spinDelay, onRefresh, position, interactive }) {
+function SlotReel({ finalDigit, spinDelay, onRefresh, position, interactive }) {
   const [display,  setDisplay]  = useState('0')
-  const [phase,    setPhase]    = useState('waiting') // waiting | spinning | locked
+  const [phase,    setPhase]    = useState('waiting')
   const [flipping, setFlipping] = useState(false)
+  const fd = parseInt(finalDigit)
 
   useEffect(() => {
     setDisplay('0')
     setPhase('waiting')
-    let spinInterval
+    const timers = [], ivals = []
+    const cleanup = () => { timers.forEach(clearTimeout); ivals.forEach(clearInterval) }
 
-    const startTimer = setTimeout(() => {
-      setPhase('spinning')
-      spinInterval = setInterval(() => {
-        setDisplay(String(Math.floor(Math.random() * 10)))
-      }, 70)
-      // Spin for 1 200 ms — noticeably slower than before (was 520 ms)
-      setTimeout(() => {
-        clearInterval(spinInterval)
-        setDisplay(finalDigit)
-        setPhase('locked')
-      }, 1200)
-    }, spinDelay)
+    timers.push(setTimeout(() => {
+      setPhase('fast')
+      const fast = setInterval(() => setDisplay(String(Math.floor(Math.random() * 10))), 50)
+      ivals.push(fast)
 
-    return () => { clearTimeout(startTimer); clearInterval(spinInterval) }
-  }, [finalDigit, spinDelay])
+      timers.push(setTimeout(() => {
+        clearInterval(fast)
+        setPhase('slowing')
+        const slow = setInterval(() => setDisplay(String(Math.floor(Math.random() * 10))), 140)
+        ivals.push(slow)
+
+        timers.push(setTimeout(() => {
+          clearInterval(slow)
+          setPhase('countdown')
+          setDisplay(String((fd + 7) % 10))                                          // −3
+          timers.push(setTimeout(() => setDisplay(String((fd + 8) % 10)), 210))     // −2
+          timers.push(setTimeout(() => setDisplay(String((fd + 9) % 10)), 430))     // −1
+          timers.push(setTimeout(() => { setDisplay(finalDigit); setPhase('locked') }, 660))
+        }, 600))
+      }, 850))
+    }, spinDelay))
+
+    return cleanup
+  }, [finalDigit, spinDelay, fd])
 
   const handleClick = () => {
     if (!interactive || phase !== 'locked' || flipping) return
     setFlipping(true)
-    setTimeout(() => { onRefresh(position); setFlipping(false) }, 400)
+    setTimeout(() => { onRefresh(position); setFlipping(false) }, 380)
   }
 
+  const isLocked = phase === 'locked'
+
   return (
-    <div className="group flex flex-col items-center gap-1.5">
-      <div
-        className="number-card rounded-xl flex items-center justify-center select-none"
-        onClick={handleClick}
-        style={{
-          width: 56, height: 68,
-          cursor: interactive && phase === 'locked' ? 'pointer' : 'default',
-          opacity: phase === 'waiting' ? 0 : 1,
-          transition: 'opacity 0.15s',
-          ...(phase === 'spinning' && { filter: 'blur(1px)', opacity: 0.6 }),
-          ...(phase === 'locked' && flipping && {
-            transform: 'rotateY(90deg) scale(0.9)',
-            transition: 'transform 0.2s ease',
-            opacity: 0.5,
-          }),
-        }}
-        title={interactive && phase === 'locked' ? 'Tap to change' : undefined}
-      >
-        <span
-          className="font-black text-4xl"
-          style={{
-            fontVariantNumeric: 'tabular-nums',
-            ...(phase === 'spinning'
-              ? { color: '#fbbf24' }
-              : phase === 'locked' && !flipping
-              ? { animation: 'digitSnap 0.35s ease-out both', color: '#fde68a' }
-              : { color: '#fbbf24' }),
-          }}
-        >
-          {display}
-        </span>
+    <div className="group flex flex-col items-center gap-2"
+      onClick={handleClick}
+      style={{ cursor: interactive && isLocked ? 'pointer' : 'default' }}>
+
+      {/* Reel window — slot-machine dark frame with gradient overlays */}
+      <div style={{
+        position: 'relative', width: 66, height: 86,
+        background: 'linear-gradient(180deg,#0c0303 0%,#1c0606 50%,#0c0303 100%)',
+        borderRadius: 13,
+        border: `2px solid ${isLocked ? 'rgba(251,191,36,0.75)' : 'rgba(251,191,36,0.18)'}`,
+        boxShadow: isLocked
+          ? '0 0 28px rgba(251,191,36,0.4),0 0 8px rgba(220,38,38,0.2),inset 0 0 14px rgba(0,0,0,0.7)'
+          : 'inset 0 0 14px rgba(0,0,0,0.7)',
+        overflow: 'hidden',
+        transition: 'border-color 0.4s,box-shadow 0.5s',
+        opacity: phase === 'waiting' ? 0 : 1,
+      }}>
+        {/* Top/bottom fade — creates the "viewing window" illusion */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom,rgba(8,2,2,0.88) 0%,transparent 30%,transparent 70%,rgba(8,2,2,0.88) 100%)',
+        }} />
+        {/* Payline guides */}
+        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% - 20px)', height:1, background:'rgba(251,191,36,0.38)', zIndex:3 }} />
+        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% + 19px)', height:1, background:'rgba(251,191,36,0.38)', zIndex:3 }} />
+        {/* Digit */}
+        <div style={{ position:'absolute', inset:0, zIndex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <span style={{
+            fontSize: '3rem', fontWeight: 900, fontVariantNumeric: 'tabular-nums',
+            color: isLocked ? '#fde68a' : '#fbbf24',
+            filter: phase==='fast' ? 'blur(4px)' : phase==='slowing' ? 'blur(2px)' : phase==='countdown' ? 'blur(0.6px)' : 'none',
+            transition: 'filter 0.2s,color 0.3s',
+            animation: isLocked && !flipping ? 'slotLand 0.38s cubic-bezier(0.34,1.56,0.64,1) both' : 'none',
+            ...(flipping && { opacity:0.4, transform:'scaleY(0.1)', transition:'transform 0.19s ease,opacity 0.19s' }),
+          }}>
+            {display}
+          </span>
+        </div>
       </div>
-      {interactive && phase === 'locked' && (
-        <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'rgba(251,191,36,0.5)' }}>
+
+      {interactive && isLocked && (
+        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color:'rgba(251,191,36,0.55)' }}>
           tap
         </span>
       )}
+    </div>
+  )
+}
+
+// ── Confetti burst ────────────────────────────────────────────────────────────
+
+function Confetti({ active }) {
+  const particles = useMemo(() => {
+    if (!active) return []
+    const cols = ['#dc2626','#fbbf24','#f97316','#fde68a','#ef4444','#fcd34d','#fb923c','#fca5a5','#fed7aa']
+    return Array.from({ length: 75 }, (_, i) => ({
+      id: i,
+      x:        Math.random() * 100,
+      color:    cols[Math.floor(Math.random() * cols.length)],
+      size:     Math.random() * 9 + 5,
+      aspect:   Math.random() > 0.45 ? 1 : Math.random() * 2.2 + 0.4,
+      circular: Math.random() > 0.55,
+      delay:    Math.random() * 0.9,
+      duration: Math.random() * 1.8 + 2.2,
+    }))
+  }, [active])
+
+  if (!particles.length) return null
+  return (
+    <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, pointerEvents:'none', zIndex:998, overflow:'hidden' }}>
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute', left:`${p.x}%`, top:'-20px',
+          width: p.size, height: p.size * p.aspect,
+          background: p.color,
+          borderRadius: p.circular ? '50%' : 3,
+          animation: `confettiFall ${p.duration}s ease-in ${p.delay}s both`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
+// ── Celebration overlay ───────────────────────────────────────────────────────
+
+function CelebrationMessage({ active, lang }) {
+  if (!active) return null
+  return (
+    <div style={{ position:'fixed', top:'32%', left:'50%', zIndex:999, pointerEvents:'none', animation:'celebrationPop 3.2s ease forwards' }}>
+      <div style={{
+        background: 'rgba(8,2,2,0.92)',
+        border: '2px solid rgba(251,191,36,0.7)',
+        borderRadius: 24, padding: '22px 44px', textAlign: 'center',
+        backdropFilter: 'blur(24px)',
+        boxShadow: '0 0 80px rgba(251,191,36,0.35),0 0 30px rgba(220,38,38,0.2)',
+      }}>
+        <div style={{ fontSize:'2.8rem', marginBottom:10 }}>🎰 🎊 🎰</div>
+        <div style={{ fontSize:'1.8rem', fontWeight:900, color:'#fbbf24', letterSpacing:'0.04em' }}>
+          {lang === 'zh' ? '恭喜！' : 'Congratulations!'}
+        </div>
+        <div style={{ fontSize:'1.05rem', color:'rgba(250,245,240,0.6)', marginTop:6 }}>
+          {lang === 'zh' ? '您的幸运数字已生成！' : 'Your lucky numbers are ready!'}
+        </div>
+      </div>
     </div>
   )
 }
@@ -139,7 +221,7 @@ function FourDSet({ number, mood, dreams, draws4D, onUpdate, revealDelay, intera
       </div>
       <div className="flex gap-3 justify-center mb-4">
         {digits.map((d, i) => (
-          <SlotDigit
+          <SlotReel
             key={i}
             finalDigit={d}
             spinDelay={revealDelay + i * 300}
@@ -414,12 +496,14 @@ function PredictionPanel({ gameType, pred4D, predToto, mood, dreams, zodiac, hor
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscope, visible, regenerateKey, draws4D, drawsToto, sessionSeed, totoConfig, lang = 'en' }) {
-  const [fourDNumber,  setFourDNumber]  = useState(null)
-  const [totoResult,   setTotoResult]   = useState(null)
-  const [generating,   setGenerating]   = useState(false)
-  const [fadingOut,    setFadingOut]    = useState(false)
-  const [interactive,  setInteractive]  = useState(false)
-  const [revealKey,    setRevealKey]    = useState(0)
+  const [fourDNumber,      setFourDNumber]      = useState(null)
+  const [totoResult,       setTotoResult]       = useState(null)
+  const [generating,       setGenerating]       = useState(false)
+  const [fadingOut,        setFadingOut]        = useState(false)
+  const [interactive,      setInteractive]      = useState(false)
+  const [revealKey,        setRevealKey]        = useState(0)
+  const [showConfetti,     setShowConfetti]     = useState(false)
+  const [showCelebration,  setShowCelebration]  = useState(false)
 
   const pred4D = useMemo(
     () => (gameType === '4d' || gameType === 'both') ? predictNumbers4D(draws4D, mood, dreams) : null,
@@ -436,6 +520,8 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
     setInteractive(false)
     setFourDNumber(null)
     setTotoResult(null)
+    setShowConfetti(false)
+    setShowCelebration(false)
 
     setTimeout(() => {
       let fourd = null
@@ -468,13 +554,19 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
         setGenerating(false)
         setFadingOut(false)
 
-        // Unlock interaction after reveal animations finish
-        // Digit delay 300ms, spin 1200ms, set offset 0 (single set)
-        const fourdReveal = fourd ? 4 * 300 + 1200 + 300 : 0
+        // Unlock + celebration timing
+        // SlotReel: spinDelay per digit (i*300) + 850ms fast + 600ms slow + 660ms countdown = 2110ms per digit
+        // Last digit (3) finishes at: 3*300 + 2110 = 3010ms
+        const fourdReveal = fourd ? 3 * 300 + 850 + 600 + 660 + 200 : 0
         const ballCount   = toto ? toto.numbers.length + (toto.type === 'system-roll' ? 1 : 0) : 0
         const ballGap     = toto?.type === 'match' ? 400 : 280
         const totoReveal  = ballCount * ballGap + 700
-        setTimeout(() => setInteractive(true), Math.max(totoReveal, fourdReveal))
+        const unlockMs    = Math.max(totoReveal, fourdReveal)
+        setTimeout(() => setInteractive(true), unlockMs)
+        // Confetti + celebration fires after everything is revealed
+        setTimeout(() => { setShowConfetti(true); setShowCelebration(true) }, unlockMs + 200)
+        setTimeout(() => setShowConfetti(false),    unlockMs + 200 + 4500)
+        setTimeout(() => setShowCelebration(false), unlockMs + 200 + 3400)
       }, 300)
     }, 1800)
   }, [gameType, mood, dreams, zodiac, horoscope, draws4D, drawsToto, regenerateKey, sessionSeed, totoConfig])
@@ -486,6 +578,9 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
   if (!visible) return null
 
   return (
+    <>
+    <Confetti active={showConfetti} />
+    <CelebrationMessage active={showCelebration} lang={lang} />
     <div className="w-full max-w-3xl mx-auto px-6 mb-16" style={{ animation: 'slideUp 0.6s ease-out both' }}>
 
       {/* Header */}
@@ -583,5 +678,6 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
         </div>
       )}
     </div>
+    </>
   )
 }

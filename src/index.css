@@ -197,3 +197,38 @@ body {
   from { opacity: 1; }
   to   { opacity: 0; }
 }
+
+/* Slot machine digit lands with a spring bounce */
+@keyframes slotLand {
+  0%   { transform: scaleY(1.45) scaleX(0.75); opacity: 0.6; }
+  40%  { transform: scaleY(0.86) scaleX(1.08); opacity: 1; }
+  65%  { transform: scaleY(1.07) scaleX(0.96); }
+  82%  { transform: scaleY(0.97) scaleX(1.02); }
+  100% { transform: scaleY(1)    scaleX(1); }
+}
+
+/* Confetti particle fall */
+@keyframes confettiFall {
+  0%   { transform: translateY(-40px) rotate(0deg);   opacity: 1; }
+  20%  { transform: translateY(18vh)  rotate(200deg); opacity: 1; }
+  50%  { transform: translateY(48vh)  rotate(450deg); opacity: 0.9; }
+  80%  { transform: translateY(78vh)  rotate(700deg); opacity: 0.5; }
+  100% { transform: translateY(108vh) rotate(900deg); opacity: 0; }
+}
+
+/* Celebration message pop + fade */
+@keyframes celebrationPop {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.4); }
+  18%  { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  28%  { transform: translateX(-50%) scale(0.97); }
+  38%  { transform: translateX(-50%) scale(1.02); }
+  45%  { transform: translateX(-50%) scale(1); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+}
+
+/* Jackpot glow pulse on all balls after reveal */
+@keyframes jackpotGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
+  50%       { box-shadow: 0 0 28px rgba(251,191,36,0.7), 0 0 50px rgba(220,38,38,0.35); }
+}
