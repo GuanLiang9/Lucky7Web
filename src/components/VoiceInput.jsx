@@ -7,11 +7,14 @@ const SR = typeof window !== 'undefined'
   ? (window.SpeechRecognition || window.webkitSpeechRecognition)
   : null
 
-// Best first-pass guess for the recognition language, from the DEVICE locale
-// only (never the app toggle). If this guess is wrong, startListening() does an
-// automatic second pass in the other language — so voice works regardless of
-// either the app UI language or the device language.
-function firstGuessLang() {
+// Best first-pass guess for the recognition language.
+// 1. The app UI language is used as a hint (tap 中文 → Chinese goes first).
+// 2. Otherwise fall back to the device locale.
+// Either way, if this guess is wrong, startListening() automatically runs a
+// second pass in the OTHER language — so voice works regardless of the setting.
+function firstGuessLang(appLang) {
+  if (appLang === 'zh') return 'zh-CN'
+  if (appLang === 'en') return 'en-SG'
   const locales = (typeof navigator !== 'undefined' && navigator.languages?.length)
     ? navigator.languages
     : [typeof navigator !== 'undefined' ? navigator.language : 'en']
@@ -107,7 +110,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     setTranscript(''); setInterim(''); setDetected(null); setRetrying(false)
     transcriptRef.current = ''
     triedLangsRef.current = []
-    runRecognition(firstGuessLang())
+    runRecognition(firstGuessLang(lang))
   }
 
   // One recognition pass in a specific language. If it yields no usable match
