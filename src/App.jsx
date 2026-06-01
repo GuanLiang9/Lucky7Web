@@ -70,6 +70,9 @@ export default function App() {
   const [lang,  setLang] = useState('en')
   const [step,  setStep] = useState(1)   // 1 = game, 2 = personalise, 3 = fortune
 
+  // Pending auto-generate — set true after voice sets gameType so useEffect can fire
+  const [pendingGenerate, setPendingGenerate] = useState(false)
+
   // Game
   const [gameType,    setGameType]    = useState(null)
   const [totoConfig,  setTotoConfig]  = useState({ mode: 'ordinary', size: 6 })
@@ -123,22 +126,27 @@ export default function App() {
   const handleZodiacSelect    = (z) => { setSelectedZodiac(z);    setShowNumbers(false) }
   const handleHoroscopeSelect = (h) => { setSelectedHoroscope(h); setShowNumbers(false) }
 
-  // Voice result handler — applies all detected selections at once
-  const handleVoiceResult = ({ zodiac, horoscope, dreams, mood, gameType }) => {
-    if (zodiac)    { setSelectedZodiac(zodiac);    setShowNumbers(false) }
-    if (horoscope) { setSelectedHoroscope(horoscope); setShowNumbers(false) }
-    if (mood)      { setMood(mood);               setShowNumbers(false) }
-    if (dreams?.length > 0) {
-      setSelectedDreams(prev => {
-        const merged = [...prev]
-        dreams.forEach(d => { if (!merged.some(x => x.id === d.id)) merged.push(d) })
-        return merged
-      })
-      setShowNumbers(false)
+  // Voice result handler — applies all detected selections, then auto-generates if game was said
+  const handleVoiceResult = ({ zodiac, horoscope, dreams, mood, gameType: detectedGame }) => {
+    setShowNumbers(false)
+    if (zodiac)           setSelectedZodiac(zodiac)
+    if (horoscope)        setSelectedHoroscope(horoscope)
+    if (mood)             setMood(mood)
+    if (dreams?.length)   setSelectedDreams(prev => {
+      const merged = [...prev]
+      dreams.forEach(d => { if (!merged.some(x => x.id === d.id)) merged.push(d) })
+      return merged
+    })
+    if (detectedGame) {
+      // Set game type then trigger auto-generate via useEffect
+      setGameType(detectedGame)
+      setPendingGenerate(true)
+    } else {
+      // No game type heard — go to step 1 so user can pick it
+      setStarted(true)
+      setStep(1)
+      setTimeout(() => mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
     }
-    if (gameType && !gameType) { setGameType(gameType); setShowNumbers(false) }
-    // If a game type was said and no game selected yet, auto-select
-    if (gameType) { setGameType(gameType); setShowNumbers(false) }
   }
 
   const goToStep2 = () => {
@@ -156,6 +164,17 @@ export default function App() {
     if (showNumbers) { setRegenerateKey(k => k + 1) } else { setShowNumbers(true) }
     setTimeout(() => numbersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 180)
   }
+
+  // Auto-generate after voice sets gameType — fires once gameType is populated
+  useEffect(() => {
+    if (pendingGenerate && gameType) {
+      setPendingGenerate(false)
+      setStarted(true)
+      setStep(3)
+      setShowNumbers(true)
+      setTimeout(() => mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    }
+  }, [pendingGenerate, gameType])
 
   const updatedLabel = resultsUpdatedAt
     ? `Updated ${new Date(resultsUpdatedAt).toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' })}`
@@ -208,7 +227,7 @@ export default function App() {
       </nav>
 
       {/* Hero */}
-      <Hero onStart={handleStart} draws4D={draws4D} drawsToto={drawsToto} lang={lang} />
+      <Hero onStart={handleStart} onVoiceResult={handleVoiceResult} draws4D={draws4D} drawsToto={drawsToto} lang={lang} />
 
       {/* Main wizard */}
       {started && (
