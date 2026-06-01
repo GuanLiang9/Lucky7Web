@@ -1,48 +1,6 @@
 import React, { useState } from 'react'
-import { QRCodeSVG } from 'qrcode.react'
 
-// ── PayNow QR generator (EMVCo / SGQR spec) ──────────────────────────────────
-// CRC-16/CCITT-FALSE: init=0xFFFF, poly=0x1021, no reflection
-
-function crc16(str) {
-  let crc = 0xFFFF
-  for (let i = 0; i < str.length; i++) {
-    crc ^= str.charCodeAt(i) << 8
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF
-    }
-  }
-  return crc.toString(16).toUpperCase().padStart(4, '0')
-}
-
-function tlv(tag, value) {
-  return `${tag}${String(value.length).padStart(2, '0')}${value}`
-}
-
-function buildPayNowQR(mobile, name = '') {
-  const proxy = `+65${mobile.replace(/^(\+65|65)/, '')}`   // e.g. +6593228017
-  const inner =
-    tlv('00', 'SG.PAYNOW') +
-    tlv('01', '0') +          // proxy type 0 = mobile number
-    tlv('02', proxy) +
-    tlv('03', '1') +          // editable amount = yes
-    tlv('04', '00000000')     // no expiry
-  const body =
-    tlv('00', '01') +         // payload format indicator
-    tlv('01', '11') +         // static QR
-    tlv('26', inner) +        // merchant account info (PayNow)
-    tlv('52', '0000') +       // MCC
-    tlv('53', '702') +        // currency SGD
-    tlv('58', 'SG') +         // country
-    (name ? tlv('59', name.slice(0, 25)) : '') +
-    tlv('60', 'Singapore') +  // city
-    '6304'                    // CRC tag
-  return body + crc16(body)
-}
-
-const MOBILE     = '93228017'
-const NAME       = 'Lucky7'
-const PAYNOW_QR  = buildPayNowQR(MOBILE, NAME)
+const MOBILE = '93228017'
 
 // ── God of Fortune icon ───────────────────────────────────────────────────────
 
@@ -100,6 +58,13 @@ export default function Donate() {
     })
   }
 
+  const saveQR = () => {
+    const a = document.createElement('a')
+    a.href = '/paynow-qr.jpg'
+    a.download = 'lucky7-paynow-qr.jpg'
+    a.click()
+  }
+
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-16">
       <div
@@ -131,19 +96,31 @@ export default function Donate() {
               boxShadow: '0 0 36px rgba(239,68,68,0.15), 0 0 12px rgba(251,191,36,0.1)',
             }}
           >
-            <QRCodeSVG
-              value={PAYNOW_QR}
-              size={200}
-              bgColor="#ffffff"
-              fgColor="#1a0000"
-              level="M"
+            <img
+              src="/paynow-qr.jpg"
+              alt="PayNow QR Code"
+              width={200}
+              height={200}
+              style={{ display: 'block', objectFit: 'cover' }}
             />
           </div>
 
-          {/* Scan instruction */}
+          {/* Scan instruction + save */}
           <p className="text-sm" style={{ color: 'rgba(250,245,240,0.4)' }}>
             Scan with any Singapore banking app · 用任何银行应用扫码
           </p>
+          <button
+            onClick={saveQR}
+            className="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs transition-opacity hover:opacity-70"
+            style={{ border: '1px solid rgba(251,191,36,0.2)', color: 'rgba(251,191,36,0.5)' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Save QR
+          </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 w-full max-w-xs">

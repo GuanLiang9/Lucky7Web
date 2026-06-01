@@ -12,6 +12,7 @@ import HotNumbers from './components/HotNumbers.jsx'
 import Donate from './components/Donate.jsx'
 import { fetchResults } from './data/api.js'
 import { t } from './data/translations.js'
+import LiveDrawReveal from './components/LiveDrawReveal.jsx'
 
 // ── Step progress bar ─────────────────────────────────────────────────────────
 
@@ -94,18 +95,58 @@ export default function App() {
   const [resultsUpdatedAt, setResultsUpdatedAt] = useState(null)
   const [resultsLive,    setResultsLive]    = useState({ '4d': false, toto: false })
   const [loadingResults, setLoadingResults] = useState(true)
+  const [liveReveal,     setLiveReveal]     = useState(null) // { game, draw }
 
-  const mainRef    = useRef(null)
-  const numbersRef = useRef(null)
+  const mainRef      = useRef(null)
+  const numbersRef   = useRef(null)
+  const seenDrawNos  = useRef({ '4d': null, toto: null })
+
+  // Returns 30s during draw windows (18:00–19:30 SGT on draw days), 5min otherwise
+  function pollingMs() {
+    const sgt = new Date(Date.now() + 8 * 60 * 60 * 1000)
+    const h = sgt.getUTCHours(), m = sgt.getUTCMinutes(), day = sgt.getUTCDay()
+    const inWindow = [0, 1, 3, 4, 6].includes(day) && (h === 18 || (h === 19 && m <= 30))
+    return inWindow ? 30_000 : 5 * 60_000
+  }
 
   useEffect(() => {
-    fetchResults().then(data => {
-      setDraws4D(data.draws4D)
-      setDrawsToto(data.drawsToto)
-      setResultsUpdatedAt(data.updatedAt)
-      setResultsLive(data.live)
-      setLoadingResults(false)
-    })
+    let cancelled = false
+    let timer = null
+
+    async function poll() {
+      try {
+        const data = await fetchResults()
+        if (cancelled) return
+
+        setDraws4D(data.draws4D)
+        setDrawsToto(data.drawsToto)
+        setResultsUpdatedAt(data.updatedAt)
+        setResultsLive(data.live)
+        setLoadingResults(false)
+
+        const new4D   = data.draws4D[0]
+        const newToto = data.drawsToto[0]
+
+        // Trigger reveal only when drawNo changes (skips initial load)
+        if (seenDrawNos.current['4d'] !== null && new4D?.drawNo !== seenDrawNos.current['4d']) {
+          setLiveReveal({ game: '4d',   draw: new4D })
+        }
+        if (seenDrawNos.current.toto !== null && newToto?.drawNo !== seenDrawNos.current.toto) {
+          setLiveReveal({ game: 'toto', draw: newToto })
+        }
+
+        // Record after first successful fetch
+        if (seenDrawNos.current['4d']  === null) seenDrawNos.current['4d']  = new4D?.drawNo
+        if (seenDrawNos.current.toto   === null) seenDrawNos.current.toto   = newToto?.drawNo
+
+      } catch (_) {
+        setLoadingResults(false)
+      }
+      if (!cancelled) timer = setTimeout(poll, pollingMs())
+    }
+
+    poll()
+    return () => { cancelled = true; clearTimeout(timer) }
   }, [])
 
   const handleStart = () => {
@@ -185,6 +226,14 @@ export default function App() {
   return (
     <div className="relative min-h-screen">
       <FloatingParticles />
+
+      {liveReveal && (
+        <LiveDrawReveal
+          game={liveReveal.game}
+          draw={liveReveal.draw}
+          onDismiss={() => setLiveReveal(null)}
+        />
+      )}
 
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'rgba(8,2,2,0.88)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(251,191,36,0.1)' }}>
