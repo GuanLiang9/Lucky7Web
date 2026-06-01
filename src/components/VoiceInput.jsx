@@ -7,18 +7,20 @@ const SR = typeof window !== 'undefined'
   ? (window.SpeechRecognition || window.webkitSpeechRecognition)
   : null
 
-// Auto-pick the recognition language — no manual toggle needed.
-// 1. If the app UI is explicitly set to Chinese, honor that.
-// 2. Otherwise auto-detect: prefer zh-CN when ANY Chinese locale is present in
-//    the device language list. zh-CN captures Chinese AND romanized/English
-//    tokens (best for mixed Singlish speech); the bilingual parser normalizes
-//    whatever comes back. Pure-English devices fall back to en-SG.
-function detectVoiceLang(appLang) {
-  if (appLang === 'zh') return 'zh-CN'
+// Best first-pass guess for the recognition language, from the DEVICE locale
+// only (never the app toggle). If this guess is wrong, startListening() does an
+// automatic second pass in the other language — so voice works regardless of
+// either the app UI language or the device language.
+function firstGuessLang() {
   const locales = (typeof navigator !== 'undefined' && navigator.languages?.length)
     ? navigator.languages
     : [typeof navigator !== 'undefined' ? navigator.language : 'en']
   return locales.some(l => /^zh/i.test(l)) ? 'zh-CN' : 'en-SG'
+}
+
+// Did the parser extract anything actionable?
+function hasAnyMatch(r) {
+  return !!(r && (r.gameType || r.zodiac || r.horoscope || r.mood || (r.dreams && r.dreams.length)))
 }
 
 // ── Detected result pill ──────────────────────────────────────────────────────
@@ -68,8 +70,10 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const [interim,    setInterim]    = useState('')
   const [detected,   setDetected]   = useState(null)
   const [exampleIdx, setExampleIdx] = useState(0)
+  const [retrying,   setRetrying]   = useState(false)  // true during the 2nd-language pass
   const recognitionRef = useRef(null)
   const transcriptRef  = useRef('')   // stable ref so onend closure sees latest value
+  const triedLangsRef  = useRef([])   // recognition languages attempted this session
 
   // Voice accepts BOTH languages automatically, so show examples from each —
   // lead with the app's current language, then the other.
@@ -95,17 +99,27 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     setStatus('done')
   }
 
+  // Entry point — fresh session, first pass in the best-guess language.
   function startListening() {
     if (!SR) { setStatus('unsupported'); return }
     if (status === 'listening') { recognitionRef.current?.stop(); return }
 
-    setTranscript(''); setInterim(''); setDetected(null); transcriptRef.current = ''
+    setTranscript(''); setInterim(''); setDetected(null); setRetrying(false)
+    transcriptRef.current = ''
+    triedLangsRef.current = []
+    runRecognition(firstGuessLang())
+  }
+
+  // One recognition pass in a specific language. If it yields no usable match
+  // and the other language hasn't been tried yet, auto-retry in that language.
+  function runRecognition(recLang) {
+    triedLangsRef.current.push(recLang)
 
     const rec = new SR()
     rec.continuous      = false
     rec.interimResults  = true
     rec.maxAlternatives = 5   // collect up to 5 alternatives — parser searches all of them
-    rec.lang            = detectVoiceLang(lang)   // auto: zh-CN or en-SG (app lang overrides)
+    rec.lang            = recLang
 
     rec.onstart = () => setStatus('listening')
 
@@ -114,7 +128,6 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       for (const r of e.results) {
         if (r.isFinal) {
           // Collect ALL alternatives so the parser has maximum coverage.
-          // Primary transcript is shown in the UI; all alternatives feed parsing.
           const primary = r[0].transcript
           let alts = primary
           for (let i = 1; i < r.length; i++) alts += ' ' + r[i].transcript
@@ -125,12 +138,10 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       }
       if (final) {
         setTranscript(prev => {
-          // Show only the primary first alternative in the UI transcript
           const display = e.results[0]?.[0]?.transcript ?? final
-          const v = (prev + display).trim()
-          // But store the full multi-alternative string in the ref for parsing
+          const v = (prev ? prev + ' ' : '') + display
           transcriptRef.current = (transcriptRef.current + ' ' + final).trim()
-          return v
+          return v.trim()
         })
       }
       setInterim(inter)
@@ -138,13 +149,34 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
 
     rec.onend = () => {
       setInterim('')
-      setTimeout(() => processResult(transcriptRef.current), 120)
+      setTimeout(() => {
+        const text   = transcriptRef.current.trim()
+        const result = text ? parseVoiceInput(text) : null
+        const other  = recLang === 'zh-CN' ? 'en-SG' : 'zh-CN'
+        // Auto second pass in the other language if nothing matched yet
+        if (!hasAnyMatch(result) && !triedLangsRef.current.includes(other)) {
+          setRetrying(true)
+          setStatus('retry')
+          setTimeout(() => runRecognition(other), 650)
+          return
+        }
+        setRetrying(false)
+        processResult(text)
+      }, 120)
     }
 
     rec.onerror = (e) => {
-      if (e.error === 'no-speech')   { setStatus('idle'); return }
       if (e.error === 'not-allowed') { setStatus('error'); return }
-      setStatus('error')
+      // On no-speech / other errors, try the other language once before giving up
+      const other = recLang === 'zh-CN' ? 'en-SG' : 'zh-CN'
+      if (!triedLangsRef.current.includes(other)) {
+        setRetrying(true)
+        setStatus('retry')
+        setTimeout(() => runRecognition(other), 500)
+        return
+      }
+      setRetrying(false)
+      setStatus(e.error === 'no-speech' ? 'idle' : 'error')
     }
 
     recognitionRef.current = rec
@@ -153,11 +185,11 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
 
   function applyAndReset() {
     if (detected) onResult(detected)
-    setStatus('idle'); setTranscript(''); setDetected(null)
+    setStatus('idle'); setTranscript(''); setDetected(null); setRetrying(false)
   }
 
   function retry() {
-    setStatus('idle'); setTranscript(''); setInterim(''); setDetected(null)
+    setStatus('idle'); setTranscript(''); setInterim(''); setDetected(null); setRetrying(false)
   }
 
   // ── Build detected pills ────────────────────────────────────────────────────
@@ -205,6 +237,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       example:    'e.g. "',
       tap:        'Tap mic & speak',
       listening:  '🔴 Listening… speak now',
+      retryMsg:   "Didn't catch that — listening again, please repeat 🎙️",
       processing: 'Understanding…',
       detected:   'I detected:',
       noMatch:    "Heard you! Couldn't match anything — try again.",
@@ -221,6 +254,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       example:    '例如："',
       tap:        '点击麦克风说话',
       listening:  '🔴 聆听中… 请说话',
+      retryMsg:   '没听清楚 — 再听一次，请重复 🎙️',
       processing: '正在识别…',
       detected:   '我听到了：',
       noMatch:    '听到了，但未能匹配 — 请再试一次。',
@@ -232,6 +266,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     },
   }
   const s = S[lang] || S.en
+  // Mic stays "active" (red, pulsing) through the brief retry transition too
+  const micActive = status === 'listening' || status === 'retry'
 
   // ── Unsupported fallback ────────────────────────────────────────────────────
 
@@ -267,21 +303,21 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
           className="relative flex items-center justify-center rounded-full transition-all active:scale-90 mb-4"
           style={{
             width: 112, height: 112,
-            background: status === 'listening'
+            background: micActive
               ? 'linear-gradient(135deg,#dc2626,#b91c1c)'
               : 'rgba(251,191,36,0.08)',
-            border: `3px solid ${status === 'listening' ? '#dc2626' : 'rgba(251,191,36,0.45)'}`,
-            boxShadow: status === 'listening'
+            border: `3px solid ${micActive ? '#dc2626' : 'rgba(251,191,36,0.45)'}`,
+            boxShadow: micActive
               ? '0 0 0 0 rgba(220,38,38,0.4)'
               : '0 0 32px rgba(251,191,36,0.12)',
-            animation: status === 'listening' ? 'micPulse 1.2s ease-out infinite' : 'none',
+            animation: micActive ? 'micPulse 1.2s ease-out infinite' : 'none',
             cursor: status === 'processing' ? 'default' : 'pointer',
           }}
         >
           {status === 'processing' ? (
             <div style={{ width:36, height:36, borderRadius:'50%', border:'4px solid rgba(251,191,36,0.4)', borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }} />
           ) : (
-            <MicIcon size={50} color={status === 'listening' ? '#fff' : '#fbbf24'} />
+            <MicIcon size={50} color={micActive ? '#fff' : '#fbbf24'} />
           )}
         </button>
 
@@ -312,6 +348,12 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
                 "{transcript}{interim}"
               </div>
             )}
+          </div>
+        )}
+
+        {status === 'retry' && (
+          <div className="text-base font-semibold text-center max-w-xs" style={{ color:'rgba(251,191,36,0.85)' }}>
+            {s.retryMsg}
           </div>
         )}
 
@@ -375,12 +417,12 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     <div className="w-full max-w-3xl mx-auto px-6 mb-6">
       <div className="rounded-3xl overflow-hidden"
         style={{
-          background: status === 'listening' ? 'rgba(220,38,38,0.08)'
-            : status === 'done'             ? 'rgba(251,191,36,0.06)'
+          background: micActive ? 'rgba(220,38,38,0.08)'
+            : status === 'done' ? 'rgba(251,191,36,0.06)'
             : 'rgba(255,255,255,0.03)',
           border: `2px solid ${
-            status === 'listening' ? 'rgba(220,38,38,0.45)'
-            : status === 'done'   ? 'rgba(251,191,36,0.4)'
+            micActive ? 'rgba(220,38,38,0.45)'
+            : status === 'done' ? 'rgba(251,191,36,0.4)'
             : 'rgba(255,255,255,0.1)'}`,
           transition: 'all 0.3s ease',
         }}>
@@ -395,16 +437,16 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
             className="relative flex items-center justify-center rounded-full transition-all active:scale-90"
             style={{
               width:88, height:88,
-              background: status === 'listening' ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'rgba(251,191,36,0.1)',
-              border: `3px solid ${status === 'listening' ? '#dc2626' : 'rgba(251,191,36,0.4)'}`,
-              boxShadow: status === 'listening' ? '0 0 0 0 rgba(220,38,38,0.4)' : '0 0 20px rgba(251,191,36,0.1)',
-              animation: status === 'listening' ? 'micPulse 1.2s ease-out infinite' : 'none',
+              background: micActive ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'rgba(251,191,36,0.1)',
+              border: `3px solid ${micActive ? '#dc2626' : 'rgba(251,191,36,0.4)'}`,
+              boxShadow: micActive ? '0 0 0 0 rgba(220,38,38,0.4)' : '0 0 20px rgba(251,191,36,0.1)',
+              animation: micActive ? 'micPulse 1.2s ease-out infinite' : 'none',
               cursor: status === 'processing' ? 'default' : 'pointer',
             }}>
             {status === 'processing' ? (
               <div style={{ width:32, height:32, borderRadius:'50%', border:'4px solid rgba(251,191,36,0.4)', borderTopColor:'transparent', animation:'spin 0.8s linear infinite' }} />
             ) : (
-              <MicIcon size={44} color={status === 'listening' ? '#fff' : '#fbbf24'} />
+              <MicIcon size={44} color={micActive ? '#fff' : '#fbbf24'} />
             )}
           </button>
 
@@ -429,6 +471,12 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
                   "{transcript}{interim}"
                 </div>
               )}
+            </div>
+          )}
+
+          {status === 'retry' && (
+            <div className="text-sm font-semibold text-center" style={{ color:'rgba(251,191,36,0.85)' }}>
+              {s.retryMsg}
             </div>
           )}
 
