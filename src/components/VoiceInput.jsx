@@ -7,6 +7,20 @@ const SR = typeof window !== 'undefined'
   ? (window.SpeechRecognition || window.webkitSpeechRecognition)
   : null
 
+// Auto-pick the recognition language — no manual toggle needed.
+// 1. If the app UI is explicitly set to Chinese, honor that.
+// 2. Otherwise auto-detect: prefer zh-CN when ANY Chinese locale is present in
+//    the device language list. zh-CN captures Chinese AND romanized/English
+//    tokens (best for mixed Singlish speech); the bilingual parser normalizes
+//    whatever comes back. Pure-English devices fall back to en-SG.
+function detectVoiceLang(appLang) {
+  if (appLang === 'zh') return 'zh-CN'
+  const locales = (typeof navigator !== 'undefined' && navigator.languages?.length)
+    ? navigator.languages
+    : [typeof navigator !== 'undefined' ? navigator.language : 'en']
+  return locales.some(l => /^zh/i.test(l)) ? 'zh-CN' : 'en-SG'
+}
+
 // ── Detected result pill ──────────────────────────────────────────────────────
 
 function Pill({ emoji, label, color }) {
@@ -57,12 +71,17 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const recognitionRef = useRef(null)
   const transcriptRef  = useRef('')   // stable ref so onend closure sees latest value
 
+  // Voice accepts BOTH languages automatically, so show examples from each —
+  // lead with the app's current language, then the other.
+  const examples = lang === 'zh'
+    ? [...VOICE_EXAMPLES.zh, ...VOICE_EXAMPLES.en]
+    : [...VOICE_EXAMPLES.en, ...VOICE_EXAMPLES.zh]
+
   // Rotate example phrases
   useEffect(() => {
-    const examples = VOICE_EXAMPLES[lang] || VOICE_EXAMPLES.en
     const id = setInterval(() => setExampleIdx(i => (i + 1) % examples.length), 3600)
     return () => clearInterval(id)
-  }, [lang])
+  }, [examples.length])
 
   // Keep ref in sync with state
   useEffect(() => { transcriptRef.current = transcript }, [transcript])
@@ -86,7 +105,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     rec.continuous      = false
     rec.interimResults  = true
     rec.maxAlternatives = 5   // collect up to 5 alternatives — parser searches all of them
-    rec.lang            = lang === 'zh' ? 'zh-CN' : 'en-SG'
+    rec.lang            = detectVoiceLang(lang)   // auto: zh-CN or en-SG (app lang overrides)
 
     rec.onstart = () => setStatus('listening')
 
@@ -181,8 +200,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const S = {
     en: {
       title:      '🎤 Speak Your Fortune',
-      heroHint:   'Say your game, zodiac, mood & dream in one go',
-      stepHint:   'Say your zodiac, mood or dream',
+      heroHint:   'Say it in English or Chinese — game, zodiac, mood & dream in one go',
+      stepHint:   'Say your zodiac, mood or dream · English or 中文',
       example:    'e.g. "',
       tap:        'Tap mic & speak',
       listening:  '🔴 Listening… speak now',
@@ -197,8 +216,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     },
     zh: {
       title:      '🎤 语音输入',
-      heroHint:   '一次说出游戏、生肖、心情和梦境',
-      stepHint:   '说出您的生肖、心情或梦境',
+      heroHint:   '中英文皆可 — 一次说出游戏、生肖、心情和梦境',
+      stepHint:   '说出您的生肖、心情或梦境 · 中英文皆可',
       example:    '例如："',
       tap:        '点击麦克风说话',
       listening:  '🔴 聆听中… 请说话',
@@ -213,7 +232,6 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     },
   }
   const s = S[lang] || S.en
-  const examples = VOICE_EXAMPLES[lang] || VOICE_EXAMPLES.en
 
   // ── Unsupported fallback ────────────────────────────────────────────────────
 
