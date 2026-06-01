@@ -1,4 +1,5 @@
 import React from 'react'
+import { t } from '../data/translations.js'
 
 const games = [
   {
@@ -87,7 +88,7 @@ const inactivePill = {
   color: 'rgba(250,245,240,0.4)',
 }
 
-export default function GameSelector({ selected, onSelect, totoConfig, onTotoConfig }) {
+export default function GameSelector({ selected, onSelect, totoConfig, onTotoConfig, lang = 'en' }) {
   const showTotoConfig = selected === 'toto' || selected === 'both'
 
   function handleModeSelect(mode) {
@@ -101,8 +102,8 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-14">
       <div className="text-center mb-8">
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤一 · Step 1 · Required</div>
-        <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>Choose Your Game</h2>
+        <div className="text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.5)' }}>{t('step1Label', lang)} · {t('required', lang)}</div>
+        <h2 className="text-4xl font-black" style={{ color: '#faf5f0' }}>{t('step1Title', lang)}</h2>
         <div className="gold-line w-24 mx-auto mt-3" />
       </div>
 
@@ -127,12 +128,12 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                 />
               )}
 
-              <div className="text-3xl sm:mb-3 flex-shrink-0">{game.icon}</div>
+              <div className="text-5xl sm:mb-3 flex-shrink-0">{game.icon}</div>
 
               <div className="flex-1">
                 <div className="flex items-baseline gap-2 mb-0.5">
                   <span
-                    className="text-xl sm:text-2xl font-black"
+                    className="text-2xl sm:text-3xl font-black"
                     style={{ color: isSelected ? game.activeLabelColor : '#faf5f0' }}
                   >
                     {game.label}
@@ -140,17 +141,17 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                   <span className="text-sm" style={{ color: 'rgba(251,191,36,0.35)' }}>{game.chinese}</span>
                 </div>
 
-                <div className="text-xs mb-0.5" style={{ color: 'rgba(250,245,240,0.45)' }}>{game.description}</div>
-                <div className="text-xs font-mono" style={{ color: 'rgba(250,245,240,0.3)' }}>{game.range}</div>
+                <div className="text-sm mb-0.5" style={{ color: 'rgba(250,245,240,0.45)' }}>{game.description}</div>
+                <div className="text-sm font-mono" style={{ color: 'rgba(250,245,240,0.3)' }}>{game.range}</div>
 
-                <div className="hidden sm:block text-xs mt-3 pt-2" style={{ color: 'rgba(250,245,240,0.25)', borderTop: '1px solid rgba(251,191,36,0.08)' }}>
+                <div className="hidden sm:block text-sm mt-3 pt-2" style={{ color: 'rgba(250,245,240,0.25)', borderTop: '1px solid rgba(251,191,36,0.08)' }}>
                   {game.draws}
                 </div>
                 <div className="hidden sm:block mt-2">
-                  <div className="text-xs font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.35)' }}>
+                  <div className="text-sm font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.35)' }}>
                     {game.prize}
                   </div>
-                  <div className="text-xs" style={{ color: 'rgba(250,245,240,0.2)' }}>{game.prizeNote}</div>
+                  <div className="text-sm" style={{ color: 'rgba(250,245,240,0.2)' }}>{game.prizeNote}</div>
                 </div>
               </div>
             </button>
@@ -169,8 +170,8 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
         >
           {/* Row A — Game type */}
           <div className="mb-4">
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.45)' }}>
-              TOTO Type
+            <div className="text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.45)' }}>
+              {t('totoType', lang)}
             </div>
             <div className="flex gap-2">
               {['ordinary', 'match'].map(mode => {
@@ -179,10 +180,10 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                   <button
                     key={mode}
                     onClick={() => handleModeSelect(mode)}
-                    className="rounded-full px-3 py-1 text-xs font-bold transition-all"
+                    className="rounded-full px-4 py-1.5 text-sm font-bold transition-all"
                     style={isActive ? activePill : inactivePill}
                   >
-                    {mode === 'ordinary' ? 'TOTO' : 'TOTO Match'}
+                    {mode === 'ordinary' ? t('totoOrdinary', lang) : t('totoMatch', lang)}
                   </button>
                 )
               })}
@@ -191,8 +192,8 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
 
           {/* Row B — Entry options */}
           <div>
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.45)' }}>
-              {totoConfig.mode === 'ordinary' ? 'Entry Type' : 'Numbers to Match'}
+            <div className="text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(251,191,36,0.45)' }}>
+              {totoConfig.mode === 'ordinary' ? t('entryType', lang) : t('numbersToMatch', lang)}
             </div>
             <div className="flex flex-wrap gap-2">
               {totoConfig.mode === 'ordinary'
@@ -202,7 +203,7 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                       <button
                         key={opt.size}
                         onClick={() => onTotoConfig({ mode: 'ordinary', size: opt.size })}
-                        className="rounded-full px-3 py-1 text-xs font-bold transition-all"
+                        className="rounded-full px-4 py-1.5 text-sm font-bold transition-all"
                         style={isActive ? activePill : inactivePill}
                       >
                         {opt.label}
@@ -215,7 +216,7 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                       <button
                         key={opt.count}
                         onClick={() => onTotoConfig({ mode: 'match', count: opt.count })}
-                        className="rounded-full px-3 py-1 text-xs font-bold transition-all"
+                        className="rounded-full px-4 py-1.5 text-sm font-bold transition-all"
                         style={isActive ? activePill : inactivePill}
                       >
                         {opt.label}

@@ -1,21 +1,14 @@
 import React, { useState } from 'react'
 import { dreamCategories } from '../data/dreams.js'
+import { t } from '../data/translations.js'
 
-export default function DreamPicker({ selected, onToggle }) {
+export default function DreamPicker({ selected, onToggle, lang = 'en' }) {
   const [activeCategory, setActiveCategory] = useState(dreamCategories[0].id)
   const currentCategory = dreamCategories.find(c => c.id === activeCategory)
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-6 mb-14">
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="text-xs uppercase tracking-widest" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤三 · Step 3</div>
-          <span className="text-xs rounded-full px-2 py-0.5 font-semibold" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: 'rgba(251,191,36,0.6)' }}>Optional</span>
-        </div>
-        <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>What Did You Dream?</h2>
-        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Pick symbols to influence your numbers · or skip · 可跳过</p>
-        <div className="gold-line w-24 mx-auto mt-3" />
-      </div>
+    <div className="w-full max-w-3xl mx-auto px-6 mb-10">
+      <p className="text-sm mb-4" style={{ color: 'rgba(250,245,240,0.35)' }}>{t('dreamDesc', lang)}</p>
 
       {/* Category tabs */}
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
@@ -25,7 +18,7 @@ export default function DreamPicker({ selected, onToggle }) {
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200"
+              className="flex-shrink-0 flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold uppercase tracking-wide transition-all duration-200"
               style={isActive ? {
                 background: 'rgba(220,38,38,0.2)',
                 border: '1px solid rgba(220,38,38,0.5)',
@@ -52,25 +45,25 @@ export default function DreamPicker({ selected, onToggle }) {
             <button
               key={item.id}
               onClick={() => onToggle(item)}
-              className="rounded-2xl p-4 text-center transition-all duration-300 hover:scale-[1.04]"
+              className="rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.04]"
               style={{
                 background: isSelected ? 'rgba(251,191,36,0.1)' : 'rgba(220,38,38,0.05)',
                 border: `1px solid ${isSelected ? 'rgba(251,191,36,0.45)' : 'rgba(220,38,38,0.12)'}`,
                 boxShadow: isSelected ? '0 0 18px rgba(251,191,36,0.1)' : 'none',
               }}
             >
-              <div className="text-2xl mb-1.5">{item.emoji}</div>
+              <div className="text-4xl mb-2">{item.emoji}</div>
               <div
-                className="text-xs font-semibold leading-tight"
+                className="text-sm font-semibold leading-tight"
                 style={{ color: isSelected ? '#fbbf24' : 'rgba(250,245,240,0.6)' }}
               >
-                {item.label}
+                {lang === 'zh' ? item.chinese : item.label}
               </div>
               <div
-                className="text-xs mt-0.5"
+                className="text-xs mt-1"
                 style={{ color: isSelected ? 'rgba(251,191,36,0.65)' : 'rgba(250,245,240,0.3)' }}
               >
-                {item.chinese}
+                {lang === 'zh' ? item.label : item.chinese}
               </div>
               {isSelected && (
                 <div

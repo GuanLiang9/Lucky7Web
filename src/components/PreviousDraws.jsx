@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { previousDraws4D, previousDrawsToto } from '../data/previousDraws.js'
+import { t } from '../data/translations.js'
 
 function LiveBadge({ live }) {
   return live ? (
@@ -171,7 +172,7 @@ function TotoDrawCard({ draw }) {
   )
 }
 
-export default function PreviousDraws({ draws4D: liveDraw4D, drawsToto: liveToto, loading, live = {}, updatedAt }) {
+export default function PreviousDraws({ draws4D: liveDraw4D, drawsToto: liveToto, loading, live = {}, updatedAt, lang = 'en' }) {
   const [tab, setTab] = useState('4d')
 
   const data4D   = liveDraw4D  || previousDraws4D
@@ -184,7 +185,7 @@ export default function PreviousDraws({ draws4D: liveDraw4D, drawsToto: liveToto
   return (
     <div className="w-full max-w-3xl mx-auto px-6 mb-16">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xl font-black" style={{ color: '#faf5f0' }}>Recent Results</h3>
+        <h3 className="text-2xl font-black" style={{ color: '#faf5f0' }}>{t('recentResults', lang)}</h3>
         <div className="flex gap-2">
           {[
             { id: '4d',   label: '4D',   activeColor: '#f87171', activeBg: 'rgba(220,38,38,0.15)',   activeBorder: 'rgba(220,38,38,0.45)' },
@@ -235,8 +236,8 @@ export default function PreviousDraws({ draws4D: liveDraw4D, drawsToto: liveToto
         }
       </div>
 
-      <p className="mt-4 text-xs text-center" style={{ color: 'rgba(250,245,240,0.15)' }}>
-        {live['4d'] || live.toto ? 'Live data from Singapore Pools' : 'Using cached data · singaporepools.com.sg for official results'}
+      <p className="mt-4 text-sm text-center" style={{ color: 'rgba(250,245,240,0.15)' }}>
+        {live['4d'] || live.toto ? t('liveData', lang) : t('cachedData', lang)}
       </p>
     </div>
   )

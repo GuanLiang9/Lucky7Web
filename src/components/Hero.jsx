@@ -37,7 +37,9 @@ function nextJackpot(drawsToto) {
   return 'S$1,000,000+'                          // reset after a win
 }
 
-export default function Hero({ onStart, draws4D, drawsToto }) {
+import { t } from '../data/translations.js'
+
+export default function Hero({ onStart, draws4D, drawsToto, lang = 'en' }) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-16 pb-16">
       <Lantern side="left" />
@@ -79,29 +81,30 @@ export default function Hero({ onStart, draws4D, drawsToto }) {
       </div>
 
       <p
-        className="text-lg md:text-xl max-w-md mb-3"
+        className="text-xl md:text-2xl max-w-md mb-3"
         style={{ color: 'rgba(250,245,240,0.6)', animation: 'slideUp 0.6s ease-out 0.12s both' }}
       >
-        Let the universe guide your numbers.
+        {t('tagline', lang)}
       </p>
       <p
-        className="text-sm max-w-sm mb-12"
+        className="text-base max-w-sm mb-12"
         style={{ color: 'rgba(250,245,240,0.3)', animation: 'slideUp 0.6s ease-out 0.22s both' }}
       >
-        Your mood, your dreams — personalised lucky numbers for{' '}
-        <span style={{ color: '#fbbf24' }} className="font-semibold">4D</span> and{' '}
+        {t('subtitle', lang)}{' '}
+        <span style={{ color: '#fbbf24' }} className="font-semibold">4D</span>{' '}
+        {lang === 'en' ? 'and' : '和'}{' '}
         <span style={{ color: '#f97316' }} className="font-semibold">TOTO</span>
       </p>
 
       {/* CTA */}
       <button
         onClick={onStart}
-        className="btn-red relative px-12 py-4 rounded-full font-black text-base uppercase tracking-widest text-white active:scale-95"
+        className="btn-red relative px-14 py-5 rounded-full font-black text-xl uppercase tracking-widest text-white active:scale-95"
         style={{ animation: 'slideUp 0.6s ease-out 0.3s both' }}
       >
-        <span className="flex items-center gap-2">
-          <span>🔮</span>
-          Reveal My Fortune
+        <span className="flex items-center gap-3">
+          <span className="text-2xl">🔮</span>
+          {t('cta', lang)}
         </span>
       </button>
 
@@ -111,9 +114,9 @@ export default function Hero({ onStart, draws4D, drawsToto }) {
         style={{ animation: 'fadeIn 0.8s ease-out 0.5s both' }}
       >
         {[
-          { label: 'Next 4D Draw',   value: fmtDate(nextDrawDate([0,3,6])),  icon: '🎰' },
-          { label: 'TOTO Jackpot',   value: nextJackpot(drawsToto),           icon: '💰' },
-          { label: 'Next TOTO Draw', value: fmtDate(nextDrawDate([1,4])),     icon: '🎱' },
+          { label: t('nextDraw4D', lang),   value: fmtDate(nextDrawDate([0,3,6])),  icon: '🎰' },
+          { label: t('totoJackpot', lang),  value: nextJackpot(drawsToto),          icon: '💰' },
+          { label: t('nextDrawToto', lang), value: fmtDate(nextDrawDate([1,4])),    icon: '🎱' },
         ].map((s, i) => (
           <div
             key={s.label}
@@ -125,8 +128,8 @@ export default function Hero({ onStart, draws4D, drawsToto }) {
           >
             <span className="text-lg">{s.icon}</span>
             <div className="text-left">
-              <div className="text-xs uppercase tracking-widest" style={{ color: 'rgba(250,245,240,0.35)' }}>{s.label}</div>
-              <div className="text-sm font-bold" style={{ color: '#fbbf24' }}>{s.value}</div>
+              <div className="text-sm uppercase tracking-widest" style={{ color: 'rgba(250,245,240,0.35)' }}>{s.label}</div>
+              <div className="text-base font-bold" style={{ color: '#fbbf24' }}>{s.value}</div>
             </div>
           </div>
         ))}

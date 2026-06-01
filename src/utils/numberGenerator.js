@@ -1,4 +1,5 @@
 import { TOTO_HIST, FOURD_HIST } from '../data/historicalStats.js'
+// zodiac/horoscope objects carry .luckyDigits, .luckyNums, .totoRange, .seed
 
 // ── Core hash / PRNG ─────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ function seededRandom(seed) {
 // sessionSeed is the dominant input — same mood+dreams on the same day still
 // produces different numbers for every browser session.
 
-function getSeed(mood, dreams, iteration = 0, sessionSeed = 0) {
+function getSeed(mood, dreams, iteration = 0, sessionSeed = 0, zodiac = null, horoscope = null) {
   const now = new Date()
   const dateVal = now.getDate() * 31 + (now.getMonth() + 1) * 373 + (now.getFullYear() % 100) * 4093
 
@@ -37,9 +38,12 @@ function getSeed(mood, dreams, iteration = 0, sessionSeed = 0) {
     (dreamArr.length * 1234567 + 1) >>> 0
   )
 
+  const zodiacVal = ((zodiac?.seed || 0) * 773 + (horoscope?.seed || 0) * 419) >>> 0
+
   let seed = mix32((sessionSeed + 1) >>> 0, dateVal >>> 0)
   seed = mix32(seed, moodVal >>> 0)
   seed = mix32(seed, dreamHash)
+  seed = mix32(seed, zodiacVal)
   seed = mix32(seed, (iteration * 1000003 + 1) >>> 0)
   return (seed % 99991) + 1
 }
@@ -159,7 +163,7 @@ function getDreamObjects(dreams) {
   return dreams.filter(d => d && typeof d === 'object' && d.id)
 }
 
-function getDigitWeights(draws4D, mood, dreams) {
+function getDigitWeights(draws4D, mood, dreams, zodiac = null, horoscope = null) {
   const freq = new Array(10).fill(2)
   draws4D?.forEach(d => {
     const all = [d.first, d.second, d.third, ...(d.starters || []), ...(d.consolation || [])]
@@ -172,10 +176,12 @@ function getDigitWeights(draws4D, mood, dreams) {
       freq[digit] = Math.round(freq[digit] * mult)
     })
   })
+  zodiac?.luckyDigits?.forEach(([digit, mult]) => { freq[digit] = Math.round(freq[digit] * mult) })
+  horoscope?.luckyDigits?.forEach(([digit, mult]) => { freq[digit] = Math.round(freq[digit] * mult) })
   return freq
 }
 
-function getTotoWeights(drawsToto, mood, dreams) {
+function getTotoWeights(drawsToto, mood, dreams, zodiac = null, horoscope = null) {
   const freq = new Array(50).fill(2)
   drawsToto?.forEach(d => {
     ;(d.numbers || []).forEach(n => { freq[n] += 3 })
@@ -195,6 +201,16 @@ function getTotoWeights(drawsToto, mood, dreams) {
     }
     boost.lucky?.forEach(n => { if (n >= 1 && n <= 49) freq[n] = Math.round(freq[n] * 1.6) })
   })
+  ;[zodiac, horoscope].forEach(z => {
+    if (!z) return
+    if (z.totoRange) {
+      for (let i = 1; i <= 49; i++) {
+        const key = i <= 16 ? 'low' : i <= 33 ? 'mid' : 'high'
+        freq[i] = Math.round(freq[i] * (z.totoRange[key] || 1))
+      }
+    }
+    z.luckyNums?.forEach(n => { if (n >= 1 && n <= 49) freq[n] = Math.round(freq[n] * 1.5) })
+  })
   return freq
 }
 
@@ -212,10 +228,10 @@ function lastDrawTotoNumbers(drawsToto) {
 
 // ── Lucky number generation ───────────────────────────────────────────────────
 
-export function generate4DNumbers(mood, dreams, draws4D, iteration = 0, sessionSeed = 0) {
-  const seed = getSeed(mood, dreams, iteration, sessionSeed)
+export function generate4DNumbers(mood, dreams, draws4D, iteration = 0, sessionSeed = 0, zodiac = null, horoscope = null) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed, zodiac, horoscope)
   const rng = seededRandom(seed)
-  const weights = getDigitWeights(draws4D, mood, dreams)
+  const weights = getDigitWeights(draws4D, mood, dreams, zodiac, horoscope)
   const excluded = lastDraw4DNumbers(draws4D)
   const used = new Set()
 
@@ -230,10 +246,10 @@ export function generate4DNumbers(mood, dreams, draws4D, iteration = 0, sessionS
   })
 }
 
-export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0, size = 6) {
-  const seed = getSeed(mood, dreams, iteration, sessionSeed) + 555
+export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0, size = 6, zodiac = null, horoscope = null) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed, zodiac, horoscope) + 555
   const rng = seededRandom(seed)
-  const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
+  const weights = getTotoWeights(drawsToto, mood, dreams, zodiac, horoscope).slice(1)
 
   lastDrawTotoNumbers(drawsToto).forEach(n => {
     if (n >= 1 && n <= 49) weights[n - 1] = 0
@@ -257,10 +273,10 @@ export function generateTotoNumbers(mood, dreams, drawsToto, iteration = 0, sess
   return Array.from(numbers).sort((a, b) => a - b)
 }
 
-export function generateSystemRollNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0) {
-  const seed = getSeed(mood, dreams, iteration, sessionSeed) + 777
+export function generateSystemRollNumbers(mood, dreams, drawsToto, iteration = 0, sessionSeed = 0, zodiac = null, horoscope = null) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed, zodiac, horoscope) + 777
   const rng = seededRandom(seed)
-  const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
+  const weights = getTotoWeights(drawsToto, mood, dreams, zodiac, horoscope).slice(1)
 
   lastDrawTotoNumbers(drawsToto).forEach(n => {
     if (n >= 1 && n <= 49) weights[n - 1] = 0
@@ -284,10 +300,10 @@ export function generateSystemRollNumbers(mood, dreams, drawsToto, iteration = 0
   return { numbers: Array.from(numbers).sort((a, b) => a - b), systemRoll: true }
 }
 
-export function generateTotoMatchNumbers(mood, dreams, drawsToto, count, iteration = 0, sessionSeed = 0) {
-  const seed = getSeed(mood, dreams, iteration, sessionSeed) + 333
+export function generateTotoMatchNumbers(mood, dreams, drawsToto, count, iteration = 0, sessionSeed = 0, zodiac = null, horoscope = null) {
+  const seed = getSeed(mood, dreams, iteration, sessionSeed, zodiac, horoscope) + 333
   const rng = seededRandom(seed)
-  const weights = getTotoWeights(drawsToto, mood, dreams).slice(1)
+  const weights = getTotoWeights(drawsToto, mood, dreams, zodiac, horoscope).slice(1)
 
   lastDrawTotoNumbers(drawsToto).forEach(n => {
     if (n >= 1 && n <= 49) weights[n - 1] = 0

@@ -1,5 +1,6 @@
 import React from 'react'
 import { moods } from '../data/moods.js'
+import { t } from '../data/translations.js'
 
 const colorStyles = {
   emerald: { active: 'rgba(16,185,129,0.15)',  border: 'rgba(16,185,129,0.5)',  text: '#34d399' },
@@ -19,18 +20,10 @@ const colorStyles = {
   indigo:  { active: 'rgba(99,102,241,0.15)',  border: 'rgba(99,102,241,0.5)',  text: '#818cf8' },
 }
 
-export default function MoodPicker({ selected, onSelect }) {
+export default function MoodPicker({ selected, onSelect, lang = 'en' }) {
   return (
-    <div className="w-full max-w-3xl mx-auto px-6 mb-14">
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="text-xs uppercase tracking-widest" style={{ color: 'rgba(251,191,36,0.5)' }}>步骤二 · Step 2</div>
-          <span className="text-xs rounded-full px-2 py-0.5 font-semibold" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', color: 'rgba(251,191,36,0.6)' }}>Optional</span>
-        </div>
-        <h2 className="text-3xl font-black" style={{ color: '#faf5f0' }}>How Are You Feeling?</h2>
-        <p className="text-sm mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>Personalises your numbers · skip to use pure fate · 可跳过</p>
-        <div className="gold-line w-24 mx-auto mt-3" />
-      </div>
+    <div className="w-full max-w-3xl mx-auto px-6 mb-10">
+      <p className="text-sm mb-4" style={{ color: 'rgba(250,245,240,0.35)' }}>{t('moodDesc', lang)}</p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {moods.map(mood => {
@@ -40,28 +33,29 @@ export default function MoodPicker({ selected, onSelect }) {
             <button
               key={mood.id}
               onClick={() => onSelect(mood)}
-              className="relative rounded-2xl p-4 text-center transition-all duration-300 hover:scale-[1.04]"
+              className="relative rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.04]"
               style={{
                 background: isSelected ? c.active : 'rgba(220,38,38,0.06)',
                 border: `1px solid ${isSelected ? c.border : 'rgba(220,38,38,0.15)'}`,
                 boxShadow: isSelected ? `0 0 20px ${c.active}` : 'none',
               }}
             >
-              <div className="text-3xl mb-2">{mood.emoji}</div>
+              <div className="text-4xl mb-2">{mood.emoji}</div>
               <div
-                className="text-xs font-bold uppercase tracking-wide"
+                className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: isSelected ? c.text : '#faf5f0' }}
               >
-                {mood.label}
+                {lang === 'zh' ? mood.chinese : mood.label}
               </div>
               <div
-                className="text-xs font-medium mb-1"
+                className="text-sm font-medium mb-1"
                 style={{ color: isSelected ? c.text : 'rgba(251,191,36,0.45)' }}
               >
-                {mood.chinese}
+                {lang === 'zh' ? mood.label : mood.chinese}
               </div>
-              <div className="text-xs" style={{ color: 'rgba(250,245,240,0.3)' }}>{mood.description}</div>
-              <div className="text-xs" style={{ color: 'rgba(250,245,240,0.2)' }}>{mood.descChinese}</div>
+              <div className="text-xs mt-1" style={{ color: 'rgba(250,245,240,0.3)' }}>
+                {lang === 'zh' ? mood.descChinese : mood.description}
+              </div>
               {isSelected && (
                 <div
                   className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"

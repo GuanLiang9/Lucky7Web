@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { previousDraws4D, previousDrawsToto } from '../data/previousDraws.js'
 import { TOTO_HIST, FOURD_HIST } from '../data/historicalStats.js'
+import { t } from '../data/translations.js'
 
 function computeHot4D(draws) {
   // Start with 10-year historical baseline; blend recent draws at 3× weight
@@ -39,7 +40,7 @@ function Badge({ label, color }) {
   )
 }
 
-export default function HotNumbers({ gameType, draws4D, drawsToto }) {
+export default function HotNumbers({ gameType, draws4D, drawsToto, lang = 'en' }) {
   const [tab, setTab] = useState('hot')
 
   const isHot = tab === 'hot'
@@ -63,11 +64,11 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-sm font-black" style={{ color: '#faf5f0' }}>
-            {isHot ? '🔥 Hot Numbers' : '🧊 Cold Numbers'}
+          <div className="text-lg font-black" style={{ color: '#faf5f0' }}>
+            {isHot ? t('hotNumbers', lang) : t('coldNumbers', lang)}
           </div>
-          <div className="text-xs mt-0.5" style={{ color: 'rgba(250,245,240,0.35)' }}>
-            {isHot ? 'Appeared most in recent draws · 近期最常出现' : 'Due for a comeback · 久未出现'}
+          <div className="text-sm mt-0.5" style={{ color: 'rgba(250,245,240,0.35)' }}>
+            {isHot ? t('hotDesc', lang) : t('coldDesc', lang)}
           </div>
         </div>
         <div className="flex gap-2">
@@ -95,8 +96,8 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
         {/* 4D hot digits */}
         {show4d && (
           <div>
-            <div className="text-xs uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: 'rgba(251,191,36,0.5)' }}>
-              <span>4D {isHot ? 'Hot' : 'Cold'} Digits</span>
+            <div className="text-sm uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: 'rgba(251,191,36,0.5)' }}>
+              <span>{isHot ? t('hot4D', lang) : t('cold4D', lang)}</span>
               <Badge label={isHot ? '最热' : '最冷'} color={{ bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.3)', text: '#fbbf24' }} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -106,7 +107,7 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
                   className="flex flex-col items-center gap-1"
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg"
+                    className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl"
                     style={{
                       background: isHot
                         ? `rgba(220,38,38,${0.25 - i * 0.02})`
@@ -129,15 +130,15 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
         {/* TOTO hot numbers */}
         {showToto && (
           <div>
-            <div className="text-xs uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: 'rgba(251,191,36,0.5)' }}>
-              <span>TOTO {isHot ? 'Hot' : 'Cold'} Numbers</span>
+            <div className="text-sm uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: 'rgba(251,191,36,0.5)' }}>
+              <span>{isHot ? t('hotToto', lang) : t('coldToto', lang)}</span>
               <Badge label={isHot ? '最热' : '最冷'} color={{ bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.3)', text: '#fbbf24' }} />
             </div>
             <div className="flex flex-wrap gap-2">
               {totoNums.map((n, i) => (
                 <div
                   key={n}
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm relative"
+                  className="w-12 h-12 rounded-full flex items-center justify-center font-black text-base relative"
                   style={{
                     background: isHot
                       ? `rgba(220,38,38,${0.22 - i * 0.015})`
@@ -164,8 +165,8 @@ export default function HotNumbers({ gameType, draws4D, drawsToto }) {
         )}
       </div>
 
-      <p className="text-xs mt-4" style={{ color: 'rgba(250,245,240,0.2)' }}>
-        Based on 10+ years of historical draws · Past frequency does not guarantee future results
+      <p className="text-sm mt-4" style={{ color: 'rgba(250,245,240,0.2)' }}>
+        {t('basedOn', lang)}
       </p>
     </div>
   )
