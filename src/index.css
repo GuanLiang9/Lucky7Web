@@ -232,3 +232,30 @@ body {
   0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
   50%       { box-shadow: 0 0 28px rgba(251,191,36,0.7), 0 0 50px rgba(220,38,38,0.35); }
 }
+
+/* Voice mic pulse ring */
+@keyframes micPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
+  70%  { box-shadow: 0 0 0 18px rgba(220,38,38,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+}
+
+/* Voice waveform bars */
+@keyframes voiceWave {
+  from { height: 8px;  opacity: 0.5; }
+  to   { height: 36px; opacity: 1.0; }
+}
+
+/* ── Mobile-first touch improvements ── */
+
+/* Minimum touch target 48 × 48 px */
+button { min-height: 44px; }
+
+/* Remove tap highlight flicker on mobile */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Prevent text selection on buttons */
+button { user-select: none; -webkit-user-select: none; }
+
+/* Safe-area inset for phones with notch / home indicator */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }

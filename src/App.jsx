@@ -5,6 +5,7 @@ import GameSelector from './components/GameSelector.jsx'
 import ZodiacPicker from './components/ZodiacPicker.jsx'
 import MoodPicker from './components/MoodPicker.jsx'
 import DreamPicker from './components/DreamPicker.jsx'
+import VoiceInput from './components/VoiceInput.jsx'
 import NumberDisplay from './components/NumberDisplay.jsx'
 import PreviousDraws from './components/PreviousDraws.jsx'
 import HotNumbers from './components/HotNumbers.jsx'
@@ -121,6 +122,24 @@ export default function App() {
   }
   const handleZodiacSelect    = (z) => { setSelectedZodiac(z);    setShowNumbers(false) }
   const handleHoroscopeSelect = (h) => { setSelectedHoroscope(h); setShowNumbers(false) }
+
+  // Voice result handler — applies all detected selections at once
+  const handleVoiceResult = ({ zodiac, horoscope, dreams, mood, gameType }) => {
+    if (zodiac)    { setSelectedZodiac(zodiac);    setShowNumbers(false) }
+    if (horoscope) { setSelectedHoroscope(horoscope); setShowNumbers(false) }
+    if (mood)      { setMood(mood);               setShowNumbers(false) }
+    if (dreams?.length > 0) {
+      setSelectedDreams(prev => {
+        const merged = [...prev]
+        dreams.forEach(d => { if (!merged.some(x => x.id === d.id)) merged.push(d) })
+        return merged
+      })
+      setShowNumbers(false)
+    }
+    if (gameType && !gameType) { setGameType(gameType); setShowNumbers(false) }
+    // If a game type was said and no game selected yet, auto-select
+    if (gameType) { setGameType(gameType); setShowNumbers(false) }
+  }
 
   const goToStep2 = () => {
     setStep(2)
@@ -240,15 +259,27 @@ export default function App() {
           {step === 2 && (
             <div style={{ animation: 'slideUp 0.35s ease-out both' }}>
               {/* Section header */}
-              <div className="text-center px-6 mb-8 max-w-3xl mx-auto">
+              <div className="text-center px-6 mb-5 max-w-3xl mx-auto">
                 <div className="text-sm uppercase tracking-widest mb-1" style={{ color: 'rgba(251,191,36,0.5)' }}>
                   {t('step2Label', lang)} · {t('optional', lang)}
                 </div>
                 <h2 className="text-4xl font-black" style={{ color: '#faf5f0' }}>{t('step2Title', lang)}</h2>
                 <p className="text-base mt-2" style={{ color: 'rgba(250,245,240,0.35)' }}>
-                  {lang === 'en' ? 'Zodiac · Mood · Dreams — all optional, skip to go straight to your numbers' : '生肖 · 心情 · 梦境 — 全部可选，可直接跳过'}
+                  {lang === 'en' ? 'Speak or tap to personalise your lucky numbers' : '语音或点击输入您的个人化设置'}
                 </p>
                 <div className="gold-line w-24 mx-auto mt-3" />
+              </div>
+
+              {/* ── Voice input ── */}
+              <VoiceInput onResult={handleVoiceResult} lang={lang} />
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 px-6 mb-5 max-w-3xl mx-auto">
+                <div className="flex-1 h-px" style={{ background:'rgba(251,191,36,0.12)' }} />
+                <span className="text-sm" style={{ color:'rgba(250,245,240,0.25)' }}>
+                  {lang === 'en' ? 'or select manually' : '或手动选择'}
+                </span>
+                <div className="flex-1 h-px" style={{ background:'rgba(251,191,36,0.12)' }} />
               </div>
 
               {/* Zodiac */}
@@ -391,6 +422,42 @@ export default function App() {
           )}
         </div>
       )}
+
+      {/* ── Mobile sticky bottom bar (shows during step 1 & 2) ── */}
+      {started && step < 3 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden"
+          style={{ background: 'rgba(8,2,2,0.96)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(251,191,36,0.15)', padding: '12px 20px env(safe-area-inset-bottom, 20px)' }}>
+          <div className="flex items-center gap-3 max-w-sm mx-auto">
+            {step === 2 && (
+              <button onClick={goToStep1}
+                className="flex-shrink-0 h-14 px-5 rounded-full font-bold text-base transition-all active:scale-95"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(250,245,240,0.5)' }}>
+                ←
+              </button>
+            )}
+            <button
+              onClick={step === 1 ? goToStep2 : handleGenerate}
+              disabled={!gameType}
+              className="flex-1 h-14 rounded-full font-black text-lg uppercase tracking-wider text-white transition-all active:scale-95"
+              style={gameType ? {
+                background: 'linear-gradient(135deg,#dc2626,#b91c1c)',
+                boxShadow: '0 0 30px rgba(220,38,38,0.35)',
+              } : {
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'rgba(250,245,240,0.25)',
+              }}
+            >
+              {step === 1
+                ? t('nextPersonalise', lang)
+                : t('revealFortune', lang)}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom padding so sticky bar doesn't overlap content on mobile */}
+      {started && step < 3 && <div className="h-24 sm:hidden" />}
 
       {/* Footer */}
       <footer className="relative z-10 py-10 text-center" style={{ borderTop: '1px solid rgba(251,191,36,0.08)' }}>
