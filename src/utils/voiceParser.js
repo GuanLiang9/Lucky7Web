@@ -140,9 +140,73 @@ const HOROSCOPE_KW = {
 }
 
 const GAME_KW = {
-  '4d':'4d','4-d':'4d','four d':'4d','four digit':'4d','四维':'4d','四d':'4d',
-  'toto':'toto','lotto':'toto','多多':'toto','lottery':'toto',
-  'both':'both','all':'both','everything':'both','两个':'both','全部':'both',
+  // ── 4D ────────────────────────────────────────────────────────────────────
+  // Direct matches
+  '4d':'4d', '4-d':'4d', '4 d':'4d',
+  // English phonetic
+  'four d':'4d', 'four dee':'4d', 'four digit':'4d', 'four digits':'4d',
+  'for d':'4d', 'for dee':'4d', 'ford':'4d',
+  // Traditional Chinese term
+  '四维':'4d',
+  // zh-CN: "四" (sì = 4) + various D-sound transcriptions
+  '四d':'4d', '四d':'4d', '四de':'4d',
+  '四迪':'4d', '四地':'4d', '四底':'4d', '四的':'4d',
+  '四帝':'4d', '四弟':'4d', '四第':'4d', '四得':'4d',
+  '四低':'4d', '四滴':'4d', '四嘀':'4d', '四啲':'4d',
+  // zh-CN: Arabic "4" + Chinese D-sounds
+  '4迪':'4d', '4地':'4d', '4底':'4d', '4的':'4d',
+  '4帝':'4d', '4弟':'4d', '4低':'4d', '4滴':'4d',
+  // zh-CN might output "4" alone (user said "四D" and only 4 was caught)
+  // — handled separately in parser
+
+  // ── TOTO ──────────────────────────────────────────────────────────────────
+  'toto':'toto', 'lotto':'toto', 'lottery':'toto',
+  'to to':'toto', 'toe toe':'toto',
+  '多多':'toto',                              // standard Singapore Chinese
+  '妥妥':'toto', '拖拖':'toto', '托托':'toto',  // zh-CN phonetic variants
+  '多托':'toto', '佗佗':'toto', '哆哆':'toto',
+  '多度':'toto', '多朵':'toto',
+
+  // ── Both ──────────────────────────────────────────────────────────────────
+  'both':'both', 'all':'both', 'everything':'both',
+  '两个':'both', '全部':'both', '都要':'both',
+  '两个都':'both', '全都':'both', '全部都':'both', '都':'both',
+}
+
+// ── Pre-processing normaliser ─────────────────────────────────────────────────
+// Applied BEFORE any keyword matching.
+// Converts common zh-CN speech-recognition manglings into canonical forms
+// so the keyword table above can match them.
+
+function normalizeTranscript(raw) {
+  return raw
+    // ── 4D: Chinese four + any D-sound character/word ─────────────────────
+    .replace(/四\s*[dD地迪底弟的帝第得低滴嘀啲]/g, '4d')
+    .replace(/4\s*[地迪底弟的帝第得低滴嘀啲]/g, '4d')
+    // English phonetic mishearings of "4D"
+    .replace(/\bford\b/gi, '4d')
+    .replace(/\bfor\s+d\b/gi, '4d')
+    .replace(/\bfor\s+dee\b/gi, '4d')
+    .replace(/\bfour\s+d\b/gi, '4d')
+    .replace(/\bfour\s+dee\b/gi, '4d')
+    .replace(/\b4\s+d\b/gi, '4d')
+    .replace(/\b4\s+dee\b/gi, '4d')
+    // ── TOTO: phonetic variants ────────────────────────────────────────────
+    .replace(/\bto\s+to\b/gi, 'toto')
+    .replace(/妥妥|拖拖|托托|多托|佗佗|哆哆|多度|多朵/g, 'toto')
+    // ── Chinese number words → digits (helps downstream parsing) ──────────
+    .replace(/四/g, '4')
+    .replace(/[一壹]/g, '1')
+    .replace(/[两二貳]/g, '2')
+    .replace(/[三叁]/g, '3')
+    .replace(/[五伍]/g, '5')
+    .replace(/[六陆]/g, '6')
+    .replace(/[七柒]/g, '7')
+    .replace(/[八捌]/g, '8')
+    .replace(/[九玖]/g, '9')
+    // ── Both / all ────────────────────────────────────────────────────────
+    .replace(/都要|两个都|全都|全部都/g, 'both')
+    .toLowerCase()
 }
 
 // ── Tokeniser ─────────────────────────────────────────────────────────────────
@@ -183,7 +247,8 @@ function allMatches(map, lower, tokens) {
 // ── Main parser ───────────────────────────────────────────────────────────────
 
 export function parseVoiceInput(transcript) {
-  const { lower, tokens } = tokenise(transcript)
+  // Normalize first to catch zh-CN mangled outputs before keyword matching
+  const { lower, tokens } = tokenise(normalizeTranscript(transcript))
 
   // Zodiac (Chinese animal)
   const zodiacId    = firstMatch(ZODIAC_KW, lower, tokens)

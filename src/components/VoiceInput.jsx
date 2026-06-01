@@ -83,20 +83,36 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     setTranscript(''); setInterim(''); setDetected(null); transcriptRef.current = ''
 
     const rec = new SR()
-    rec.continuous     = false
-    rec.interimResults = true
-    rec.lang           = lang === 'zh' ? 'zh-CN' : 'en-SG'
+    rec.continuous      = false
+    rec.interimResults  = true
+    rec.maxAlternatives = 5   // collect up to 5 alternatives — parser searches all of them
+    rec.lang            = lang === 'zh' ? 'zh-CN' : 'en-SG'
 
     rec.onstart = () => setStatus('listening')
 
     rec.onresult = (e) => {
       let final = '', inter = ''
       for (const r of e.results) {
-        if (r.isFinal) final += r[0].transcript
-        else           inter += r[0].transcript
+        if (r.isFinal) {
+          // Collect ALL alternatives so the parser has maximum coverage.
+          // Primary transcript is shown in the UI; all alternatives feed parsing.
+          const primary = r[0].transcript
+          let alts = primary
+          for (let i = 1; i < r.length; i++) alts += ' ' + r[i].transcript
+          final += alts
+        } else {
+          inter += r[0].transcript   // interim: show primary only
+        }
       }
       if (final) {
-        setTranscript(prev => { const v = prev + final; transcriptRef.current = v; return v })
+        setTranscript(prev => {
+          // Show only the primary first alternative in the UI transcript
+          const display = e.results[0]?.[0]?.transcript ?? final
+          const v = (prev + display).trim()
+          // But store the full multi-alternative string in the ref for parsing
+          transcriptRef.current = (transcriptRef.current + ' ' + final).trim()
+          return v
+        })
       }
       setInterim(inter)
     }
