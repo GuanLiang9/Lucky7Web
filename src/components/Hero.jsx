@@ -1,6 +1,7 @@
 import React from 'react'
 import { t } from '../data/translations.js'
 import VoiceInput from './VoiceInput.jsx'
+import { nextDrawDate, fmtDrawDate, DRAW_4D, DRAW_TOTO } from '../utils/drawSchedule.js'
 
 function Lantern({ side }) {
   const isLeft = side === 'left'
@@ -20,18 +21,6 @@ function Lantern({ side }) {
   )
 }
 
-// 4D: Sun=0, Wed=3, Sat=6 | TOTO: Mon=1, Thu=4
-function nextDrawDate(days) {
-  const today = new Date()
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() + i)
-    if (days.includes(d.getDay())) return d
-  }
-}
-function fmtDate(d) {
-  return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' })
-}
 function nextJackpot(drawsToto) {
   if (!drawsToto?.length) return 'S$1,000,000+'
   const last = drawsToto[0]
@@ -111,9 +100,9 @@ export default function Hero({ onStart, onVoiceResult, draws4D, drawsToto, lang 
         style={{ animation: 'fadeIn 0.8s ease-out 0.5s both' }}
       >
         {[
-          { label: t('nextDraw4D', lang),   value: fmtDate(nextDrawDate([0,3,6])),  icon: '🎰' },
-          { label: t('totoJackpot', lang),  value: nextJackpot(drawsToto),           icon: '💰' },
-          { label: t('nextDrawToto', lang), value: fmtDate(nextDrawDate([1,4])),     icon: '🎱' },
+          { label: t('nextDraw4D', lang),   value: fmtDrawDate(nextDrawDate(DRAW_4D)),   icon: '🎰' },
+          { label: t('totoJackpot', lang),  value: nextJackpot(drawsToto),              icon: '💰' },
+          { label: t('nextDrawToto', lang), value: fmtDrawDate(nextDrawDate(DRAW_TOTO)), icon: '🎱' },
         ].map(s => (
           <div key={s.label} className="flex items-center gap-3 px-5 py-3 rounded-2xl"
             style={{ background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(251,191,36,0.12)' }}>

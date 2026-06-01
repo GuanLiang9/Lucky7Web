@@ -10,33 +10,10 @@ import {
   predictNumbersToto,
 } from '../utils/numberGenerator.js'
 import { t } from '../data/translations.js'
+import { nextDrawDate, fmtDrawDate, nextDrawNo, DRAW_4D, DRAW_TOTO } from '../utils/drawSchedule.js'
 
-// ── Draw-date helpers ─────────────────────────────────────────────────────────
-
-function nextDrawDate(days) {
-  const today = new Date()
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(today)
-    d.setDate(today.getDate() + i)
-    if (days.includes(d.getDay())) return d
-  }
-}
-function fmtShort(d) {
-  return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' })
-}
-function nextDrawNo(draws, drawDays) {
-  if (!draws?.length) return null
-  const last = draws[0]
-  const next = nextDrawDate(drawDays)
-  let count = 0
-  const d = new Date(last.date)
-  d.setDate(d.getDate() + 1)
-  while (d <= next) {
-    if (drawDays.includes(d.getDay())) count++
-    d.setDate(d.getDate() + 1)
-  }
-  return String(parseInt(last.drawNo) + count)
-}
+// fmtDrawDate is used inline; alias fmtShort for compact badge display
+const fmtShort = fmtDrawDate
 function nextJackpot(drawsToto) {
   if (!drawsToto?.length) return 'S$1,000,000+'
   const last = drawsToto[0]
@@ -316,7 +293,7 @@ function TotoResultDisplay({ totoResult, totoConfig, mood, dreams, zodiac, horos
           {typeLabel}
         </span>
         <span className="text-sm" style={{ color: 'rgba(250,245,240,0.3)' }}>
-          {nextJackpot(drawsToto)} · {t('nextDraw', lang)} {fmtShort(nextDrawDate([1, 4]))}
+          {nextJackpot(drawsToto)} · {t('nextDraw', lang)} {fmtShort(nextDrawDate(DRAW_TOTO))}
         </span>
       </div>
 
@@ -612,7 +589,7 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
                   {t('number4D', lang)}
                 </span>
                 <span className="text-sm" style={{ color: 'rgba(250,245,240,0.3)' }}>
-                  {fmtShort(nextDrawDate([0, 3, 6]))} · Draw #{nextDrawNo(draws4D, [0, 3, 6])}
+                  {fmtShort(nextDrawDate(DRAW_4D))} · Draw #{nextDrawNo(draws4D, DRAW_4D)}
                 </span>
               </div>
               <FourDSet
