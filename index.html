@@ -7,9 +7,18 @@
     <!-- Primary SEO -->
     <title>Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator</title>
     <meta name="description" content="Generate personalised lucky numbers for Singapore 4D and TOTO based on your mood and dream symbols. Live draw results updated after every draw. 幸运数字生成器。" />
-    <meta name="keywords" content="4D lucky number, TOTO lucky number, Singapore lottery, lucky number generator, 幸运数字, 新加坡万字" />
+    <meta name="keywords" content="4D lucky number, TOTO lucky number, Singapore lottery, lucky number generator, 4D number generator, TOTO number generator, Singapore Pools results, 幸运数字, 新加坡万字, 生肖号码, 多多号码" />
     <meta name="author" content="Lucky7" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://lucky7web.pages.dev/" />
+
+    <!-- Language alternates (single bilingual page) -->
+    <link rel="alternate" hreflang="en-sg" href="https://lucky7web.pages.dev/" />
+    <link rel="alternate" hreflang="zh-sg" href="https://lucky7web.pages.dev/" />
+    <link rel="alternate" hreflang="x-default" href="https://lucky7web.pages.dev/" />
+
+    <meta name="format-detection" content="telephone=no" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -17,7 +26,11 @@
     <meta property="og:title" content="Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator" />
     <meta property="og:description" content="Personalised lucky numbers for 4D and TOTO based on your mood and dreams. Live Singapore Pools results." />
     <meta property="og:image" content="https://lucky7web.pages.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Lucky7 — Singapore 4D & TOTO lucky number generator" />
     <meta property="og:locale" content="en_SG" />
+    <meta property="og:locale:alternate" content="zh_SG" />
     <meta property="og:site_name" content="Lucky7" />
 
     <!-- Twitter Card -->
@@ -37,9 +50,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Lucky7" />
 
-    <!-- Performance: preconnect to font origins -->
+    <!-- Performance: preconnect to font + API origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://lucky7-api.guanliang976.workers.dev" crossorigin />
+    <link rel="dns-prefetch" href="https://lucky7-api.guanliang976.workers.dev" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
     <!-- JSON-LD structured data -->
@@ -60,9 +75,65 @@
       }
     }
     </script>
+
+    <!-- JSON-LD: FAQ (eligible for rich results) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does Lucky7 generate 4D and TOTO numbers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Lucky7 blends your Chinese zodiac, Western horoscope, mood and dream symbols with historical Singapore Pools draw frequencies to generate personalised lucky numbers for 4D and TOTO. You can type or use voice input in English or Chinese."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "When are the Singapore 4D and TOTO draws?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "4D is drawn every Wednesday, Saturday and Sunday at 6:30 PM. TOTO is drawn every Monday and Thursday at 6:30 PM (Singapore time)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Lucky7 free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Lucky7 is completely free. It is for entertainment only and is not affiliated with Singapore Pools."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use voice to generate my lucky numbers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Tap the microphone and say your game, zodiac, mood and dream in one go, in English or Chinese. Lucky7 detects the language automatically."
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Crawler-visible fallback: replaced by React on load. Helps SEO for
+           bots that do not execute JavaScript. -->
+      <main style="max-width:48rem;margin:0 auto;padding:2rem;color:#faf5f0;font-family:system-ui,sans-serif">
+        <h1>Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator</h1>
+        <p>Generate personalised lucky numbers for Singapore 4D and TOTO based on your
+        Chinese zodiac, Western horoscope, mood and dream symbols. Speak or type in
+        English or Chinese (中文). Live Singapore Pools results are updated after every draw.</p>
+        <h2>Singapore draw schedule</h2>
+        <p>4D draws: Wednesday, Saturday and Sunday at 6:30 PM.
+        TOTO draws: Monday and Thursday at 6:30 PM.</p>
+        <p>For entertainment only. 18+ only. Lucky7 is not affiliated with Singapore Pools.</p>
+        <p>Loading the Lucky7 app… please enable JavaScript for the full experience.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

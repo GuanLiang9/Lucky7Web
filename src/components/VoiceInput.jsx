@@ -26,6 +26,19 @@ function hasAnyMatch(r) {
   return !!(r && (r.gameType || r.zodiac || r.horoscope || r.mood || (r.dreams && r.dreams.length)))
 }
 
+// Language-family helpers (for the bilingual two-pass logic)
+const famOf       = (l) => (l.startsWith('zh') ? 'zh' : 'en')
+const otherLangOf = (l) => (famOf(l) === 'zh' ? 'en-SG' : 'zh-CN')
+
+// Some Android devices don't support every locale (e.g. en-SG). Fall back to a
+// widely-supported one in the same family when the engine reports it.
+function fallbackLocale(l) {
+  if (l === 'en-SG') return 'en-US'
+  if (l === 'en-US') return 'en-GB'
+  if (l === 'zh-CN') return 'zh'
+  return null
+}
+
 // ── Detected result pill ──────────────────────────────────────────────────────
 
 function Pill({ emoji, label, color }) {
@@ -75,8 +88,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const [exampleIdx, setExampleIdx] = useState(0)
   const [retrying,   setRetrying]   = useState(false)  // true during the 2nd-language pass
   const recognitionRef = useRef(null)
-  const transcriptRef  = useRef('')   // stable ref so onend closure sees latest value
-  const triedLangsRef  = useRef([])   // recognition languages attempted this session
+  const transcriptRef  = useRef('')          // stable ref so onend closure sees latest value
+  const triedFamRef    = useRef(new Set())   // language families ('zh'/'en') attempted
 
   // Voice accepts BOTH languages automatically, so show examples from each —
   // lead with the app's current language, then the other.
@@ -102,26 +115,36 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     setStatus('done')
   }
 
-  // Entry point — fresh session, first pass in the best-guess language.
+  // Entry point — always from a user tap (gesture-safe on Android).
   function startListening() {
     if (!SR) { setStatus('unsupported'); return }
-    if (status === 'listening') { recognitionRef.current?.stop(); return }
-
+    if (status === 'listening' || status === 'retry') {
+      try { recognitionRef.current?.stop() } catch { /* ignore */ }
+      return
+    }
     setTranscript(''); setInterim(''); setDetected(null); setRetrying(false)
     transcriptRef.current = ''
-    triedLangsRef.current = []
+    triedFamRef.current = new Set()
     runRecognition(firstGuessLang(lang))
   }
 
-  // One recognition pass in a specific language. If it yields no usable match
-  // and the other language hasn't been tried yet, auto-retry in that language.
+  // Start a recognizer; returns false if the engine refused to start
+  // (e.g. Android requires a user gesture, or an instance is already live).
+  function safeStart(rec) {
+    try { rec.start(); return true } catch { return false }
+  }
+
+  // One recognition pass. Auto-retries in the other language family if nothing
+  // matched and that family hasn't been tried (works on desktop; on mobile the
+  // retry may need a tap, in which case we fall back to the manual Try Again UI).
   function runRecognition(recLang) {
-    triedLangsRef.current.push(recLang)
+    triedFamRef.current.add(famOf(recLang))
+    try { recognitionRef.current?.abort?.() } catch { /* ignore */ }
 
     const rec = new SR()
     rec.continuous      = false
     rec.interimResults  = true
-    rec.maxAlternatives = 5   // collect up to 5 alternatives — parser searches all of them
+    rec.maxAlternatives = 5
     rec.lang            = recLang
 
     rec.onstart = () => setStatus('listening')
@@ -130,13 +153,11 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       let final = '', inter = ''
       for (const r of e.results) {
         if (r.isFinal) {
-          // Collect ALL alternatives so the parser has maximum coverage.
-          const primary = r[0].transcript
-          let alts = primary
+          let alts = r[0].transcript
           for (let i = 1; i < r.length; i++) alts += ' ' + r[i].transcript
           final += alts
         } else {
-          inter += r[0].transcript   // interim: show primary only
+          inter += r[0].transcript
         }
       }
       if (final) {
@@ -150,40 +171,63 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
       setInterim(inter)
     }
 
+    const tryOtherFamily = (delay) => {
+      const other = otherLangOf(recLang)
+      if (!triedFamRef.current.has(famOf(other))) {
+        setRetrying(true)
+        setStatus('retry')
+        setTimeout(() => {
+          // If the engine won't auto-start (mobile gesture rule), show manual UI
+          if (!runRecognitionGuarded(other)) {
+            setRetrying(false)
+            processResult(transcriptRef.current.trim())
+          }
+        }, delay)
+        return true
+      }
+      return false
+    }
+
     rec.onend = () => {
       setInterim('')
       setTimeout(() => {
         const text   = transcriptRef.current.trim()
         const result = text ? parseVoiceInput(text) : null
-        const other  = recLang === 'zh-CN' ? 'en-SG' : 'zh-CN'
-        // Auto second pass in the other language if nothing matched yet
-        if (!hasAnyMatch(result) && !triedLangsRef.current.includes(other)) {
-          setRetrying(true)
-          setStatus('retry')
-          setTimeout(() => runRecognition(other), 650)
-          return
-        }
+        if (!hasAnyMatch(result) && tryOtherFamily(650)) return
         setRetrying(false)
         processResult(text)
       }, 120)
     }
 
     rec.onerror = (e) => {
-      if (e.error === 'not-allowed') { setStatus('error'); return }
-      // On no-speech / other errors, try the other language once before giving up
-      const other = recLang === 'zh-CN' ? 'en-SG' : 'zh-CN'
-      if (!triedLangsRef.current.includes(other)) {
-        setRetrying(true)
-        setStatus('retry')
-        setTimeout(() => runRecognition(other), 500)
-        return
+      // Locale unsupported on this device → retry same family with a fallback locale
+      if (e.error === 'language-not-supported') {
+        const fb = fallbackLocale(recLang)
+        if (fb) { setTimeout(() => runRecognition(fb), 150); return }
       }
+      // Hard failures — no point retrying
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed' || e.error === 'audio-capture') {
+        setRetrying(false); setStatus('error'); return
+      }
+      // no-speech / aborted / network → try the other language family once
+      if (tryOtherFamily(400)) return
       setRetrying(false)
-      setStatus(e.error === 'no-speech' ? 'idle' : 'error')
+      setStatus(e.error === 'no-speech' || e.error === 'aborted' ? 'idle' : 'error')
     }
 
     recognitionRef.current = rec
-    rec.start()
+    if (!safeStart(rec)) {
+      // Couldn't start at all — surface whatever we have (manual Try Again)
+      setRetrying(false)
+      processResult(transcriptRef.current.trim())
+      return false
+    }
+    return true
+  }
+
+  // Wrapper used by the auto-retry path so it can report start failure
+  function runRecognitionGuarded(recLang) {
+    return runRecognition(recLang)
   }
 
   function applyAndReset() {
@@ -191,8 +235,12 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     setStatus('idle'); setTranscript(''); setDetected(null); setRetrying(false)
   }
 
+  // Manual retry — fired by a tap, so it's gesture-safe to start immediately
   function retry() {
     setStatus('idle'); setTranscript(''); setInterim(''); setDetected(null); setRetrying(false)
+    transcriptRef.current = ''
+    triedFamRef.current = new Set()
+    runRecognition(firstGuessLang(lang))
   }
 
   // ── Build detected pills ────────────────────────────────────────────────────
