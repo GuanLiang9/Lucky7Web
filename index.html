@@ -4,6 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Critical inline CSS: paints the dark brand background instantly so there
+         is no white/unstyled flash before the JS bundle (and index.css) load. -->
+    <style>
+      html, body { margin: 0; background: #080202; color: #faf5f0; }
+      #app-splash {
+        position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 10px;
+        font-family: Inter, system-ui, sans-serif; background: #080202;
+        animation: l7fade 0.4s ease-in;
+      }
+      #app-splash .l7-mark { font-size: 3rem; font-weight: 900; letter-spacing: -0.02em; }
+      #app-splash .l7-sub { font-size: 0.8rem; letter-spacing: 0.35em; color: rgba(251,191,36,0.55); }
+      #app-splash .l7-dot {
+        width: 8px; height: 8px; border-radius: 50%; background: #dc2626;
+        animation: l7pulse 1s ease-in-out infinite;
+      }
+      .l7-seo { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      @keyframes l7pulse { 0%,100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+      @keyframes l7fade { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+
     <!-- Primary SEO -->
     <title>Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator</title>
     <meta name="description" content="Generate personalised lucky numbers for Singapore 4D and TOTO based on your mood and dream symbols. Live draw results updated after every draw. 幸运数字生成器。" />
@@ -120,19 +142,26 @@
   </head>
   <body>
     <div id="root">
-      <!-- Crawler-visible fallback: replaced by React on load. Helps SEO for
-           bots that do not execute JavaScript. -->
-      <main style="max-width:48rem;margin:0 auto;padding:2rem;color:#faf5f0;font-family:system-ui,sans-serif">
-        <h1>Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator</h1>
-        <p>Generate personalised lucky numbers for Singapore 4D and TOTO based on your
-        Chinese zodiac, Western horoscope, mood and dream symbols. Speak or type in
-        English or Chinese (中文). Live Singapore Pools results are updated after every draw.</p>
-        <h2>Singapore draw schedule</h2>
-        <p>4D draws: Wednesday, Saturday and Sunday at 6:30 PM.
-        TOTO draws: Monday and Thursday at 6:30 PM.</p>
-        <p>For entertainment only. 18+ only. Lucky7 is not affiliated with Singapore Pools.</p>
-        <p>Loading the Lucky7 app… please enable JavaScript for the full experience.</p>
-      </main>
+      <!-- Branded splash shown until React mounts (createRoot replaces it).
+           Matches the app's dark theme so the handoff is seamless. -->
+      <div id="app-splash">
+        <div class="l7-mark"><span style="color:#faf5f0">Lucky</span><span style="color:#fbbf24"> 7</span></div>
+        <div class="l7-sub">幸 运 数 字</div>
+        <div class="l7-dot" aria-hidden="true"></div>
+
+        <!-- Crawler-visible SEO content (visually hidden, read by bots that
+             don't run JavaScript). -->
+        <div class="l7-seo">
+          <h1>Lucky7 — Singapore 4D &amp; TOTO Lucky Number Generator</h1>
+          <p>Generate personalised lucky numbers for Singapore 4D and TOTO based on your
+          Chinese zodiac, Western horoscope, mood and dream symbols. Speak or type in
+          English or Chinese (中文). Live Singapore Pools results are updated after every draw.</p>
+          <h2>Singapore draw schedule</h2>
+          <p>4D draws: Wednesday, Saturday and Sunday at 6:30 PM.
+          TOTO draws: Monday and Thursday at 6:30 PM.</p>
+          <p>For entertainment only. 18+ only. Lucky7 is not affiliated with Singapore Pools.</p>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
