@@ -3,7 +3,6 @@ import FloatingParticles from './components/FloatingParticles.jsx'
 import Hero from './components/Hero.jsx'
 import GameSelector from './components/GameSelector.jsx'
 import ZodiacPicker from './components/ZodiacPicker.jsx'
-import MoodPicker from './components/MoodPicker.jsx'
 import DreamPicker from './components/DreamPicker.jsx'
 import VoiceInput from './components/VoiceInput.jsx'
 import NumberDisplay from './components/NumberDisplay.jsx'
@@ -89,7 +88,6 @@ export default function App() {
   const [totoConfig,  setTotoConfig]  = useState({ mode: 'ordinary', size: 6 })
 
   // Personalise
-  const [mood,            setMood]           = useState(null)
   const [selectedDreams,  setSelectedDreams] = useState([])
   const [selectedZodiac,  setSelectedZodiac] = useState(null)
   const [selectedHoroscope, setSelectedHoroscope] = useState(null)
@@ -167,7 +165,6 @@ export default function App() {
 
   const handleGameSelect = (id) => { setGameType(id); setShowNumbers(false) }
   const handleTotoConfig = (cfg) => { setTotoConfig(cfg); setShowNumbers(false) }
-  const handleMoodSelect = (m)   => { setMood(m);       setShowNumbers(false) }
   const handleDreamToggle = (dream) => {
     setSelectedDreams(prev =>
       prev.some(d => d.id === dream.id) ? prev.filter(d => d.id !== dream.id) : [...prev, dream]
@@ -178,11 +175,10 @@ export default function App() {
   const handleHoroscopeSelect = (h) => { setSelectedHoroscope(h); setShowNumbers(false) }
 
   // Voice result handler — applies all detected selections, then auto-generates if game was said
-  const handleVoiceResult = ({ zodiac, horoscope, dreams, mood, gameType: detectedGame }) => {
+  const handleVoiceResult = ({ zodiac, horoscope, dreams, gameType: detectedGame }) => {
     setShowNumbers(false)
     if (zodiac)           setSelectedZodiac(zodiac)
     if (horoscope)        setSelectedHoroscope(horoscope)
-    if (mood)             setMood(mood)
     if (dreams?.length)   setSelectedDreams(prev => {
       const merged = [...prev]
       dreams.forEach(d => { if (!merged.some(x => x.id === d.id)) merged.push(d) })
@@ -231,7 +227,7 @@ export default function App() {
     ? `Updated ${new Date(resultsUpdatedAt).toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' })}`
     : null
 
-  const hasPersonalisation = mood || selectedZodiac || selectedHoroscope || selectedDreams.length > 0
+  const hasPersonalisation = selectedZodiac || selectedHoroscope || selectedDreams.length > 0
 
   return (
     <div className="relative min-h-screen">
@@ -374,18 +370,10 @@ export default function App() {
                 lang={lang}
               />
 
-              {/* Mood */}
+              {/* Dreams */}
               <div className="max-w-3xl mx-auto px-6 mb-2 mt-2">
                 <div className="text-base font-black mb-1" style={{ color: 'rgba(251,191,36,0.6)' }}>
-                  {lang === 'en' ? '② Mood' : '② 心情'}
-                </div>
-              </div>
-              <MoodPicker selected={mood} onSelect={handleMoodSelect} lang={lang} />
-
-              {/* Dreams */}
-              <div className="max-w-3xl mx-auto px-6 mb-2">
-                <div className="text-base font-black mb-1" style={{ color: 'rgba(251,191,36,0.6)' }}>
-                  {lang === 'en' ? '③ Dreams' : '③ 梦境'}
+                  {lang === 'en' ? '② Dreams' : '② 梦境'}
                 </div>
               </div>
               <DreamPicker selected={selectedDreams} onToggle={handleDreamToggle} lang={lang} />
@@ -406,11 +394,6 @@ export default function App() {
                     {selectedHoroscope && (
                       <span className="text-sm rounded-full px-3 py-1" style={{ background: 'rgba(139,92,246,0.12)', color: '#c4b5fd' }}>
                         {selectedHoroscope.emoji} {lang === 'zh' ? selectedHoroscope.zh : selectedHoroscope.en}
-                      </span>
-                    )}
-                    {mood && (
-                      <span className="text-sm rounded-full px-3 py-1" style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
-                        {mood.emoji} {lang === 'zh' ? mood.chinese : mood.label}
                       </span>
                     )}
                     {selectedDreams.length > 0 && (
@@ -450,7 +433,7 @@ export default function App() {
               <div ref={numbersRef}>
                 <NumberDisplay
                   gameType={gameType}
-                  mood={mood}
+                  mood={null}
                   dreams={selectedDreams}
                   zodiac={selectedZodiac}
                   horoscope={selectedHoroscope}

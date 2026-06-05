@@ -5,7 +5,7 @@ const TR = {
     // Hero
     badge: 'Singapore Lucky Numbers',
     tagline: 'Let the universe guide your numbers.',
-    subtitle: 'Mood · Zodiac · Dreams — personalised lucky numbers for',
+    subtitle: 'Zodiac · Dreams — personalised lucky numbers for',
     cta: 'Reveal My Fortune',
     nextDraw4D: 'Next 4D Draw', totoJackpot: 'TOTO Jackpot', nextDrawToto: 'Next TOTO Draw',
     // Steps
@@ -84,7 +84,7 @@ const TR = {
     live: '实时', cached: '缓存', loading: '加载中...',
     badge: '新加坡幸运数字',
     tagline: '让宇宙指引您的数字。',
-    subtitle: '心情 · 生肖 · 梦境 — 专属幸运数字',
+    subtitle: '生肖 · 梦境 — 专属幸运数字',
     cta: '揭晓我的运势',
     nextDraw4D: '下次4D开彩', totoJackpot: '多多头奖', nextDrawToto: '下次多多开彩',
     step1Label: '第一步', step2Label: '第二步', step3Label: '第三步',
