@@ -242,7 +242,7 @@ export default function App() {
       )}
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'rgba(15,3,3,0.95)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(251,191,36,0.20)' }}>
+      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'linear-gradient(to bottom, rgba(45,9,9,0.92), rgba(28,6,6,0.78))', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(251,191,36,0.28)', boxShadow: '0 4px 24px rgba(0,0,0,0.35)' }}>
         <div className="max-w-3xl mx-auto px-4 sm:px-5 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
           <span className="font-black text-xl sm:text-2xl tracking-tight flex-shrink-0">
             <span style={{ color: '#faf5f0' }}>Lucky</span>
@@ -487,7 +487,13 @@ export default function App() {
       {/* ── Mobile sticky bottom bar (shows during step 1 & 2) ── */}
       {started && step < 3 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden"
-          style={{ background: 'rgba(15,3,3,0.97)', backdropFilter: 'blur(24px)', borderTop: '1px solid rgba(251,191,36,0.24)', padding: '10px 16px env(safe-area-inset-bottom, 16px)' }}>
+          style={{
+            background: 'linear-gradient(to top, rgba(28,6,6,0.98), rgba(28,6,6,0.85))',
+            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            borderTop: '1px solid rgba(251,191,36,0.28)',
+            paddingTop: '12px', paddingLeft: '16px', paddingRight: '16px',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+          }}>
           <div className="flex items-center gap-3 max-w-sm mx-auto">
             {step === 2 && (
               <button onClick={goToStep1}
@@ -518,7 +524,7 @@ export default function App() {
       )}
 
       {/* Bottom padding so sticky bar doesn't overlap content on mobile */}
-      {started && step < 3 && <div className="h-24 sm:hidden" />}
+      {started && step < 3 && <div className="h-32 sm:hidden" />}
 
       {/* Footer */}
       <footer className="relative z-10 py-10 text-center" style={{ borderTop: '1px solid rgba(251,191,36,0.08)' }}>
