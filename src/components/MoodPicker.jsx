@@ -48,13 +48,10 @@ export default function MoodPicker({ selected, onSelect, lang = 'en' }) {
                 {lang === 'zh' ? mood.chinese : mood.label}
               </div>
               <div
-                className="text-xs sm:text-sm font-medium mb-1"
+                className="text-xs font-medium"
                 style={{ color: isSelected ? c.text : 'rgba(251,191,36,0.52)' }}
               >
                 {lang === 'zh' ? mood.label : mood.chinese}
-              </div>
-              <div className="text-xs mt-1 hidden sm:block" style={{ color: 'rgba(250,245,240,0.35)' }}>
-                {lang === 'zh' ? mood.descChinese : mood.description}
               </div>
               {isSelected && (
                 <div
