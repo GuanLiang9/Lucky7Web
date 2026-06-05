@@ -147,6 +147,17 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     rec.maxAlternatives = 5
     rec.lang            = recLang
 
+    // Hint the speech engine towards key lottery words (Chrome/Edge only; no-op elsewhere)
+    try {
+      const GL = window.SpeechGrammarList || window.webkitSpeechGrammarList
+      if (GL) {
+        const grammar = '#JSGF V1.0; grammar lucky7; public <game> = 4D | TOTO | toto | four D | four dee | both ;'
+        const list = new GL()
+        list.addFromString(grammar, 1)
+        rec.grammars = list
+      }
+    } catch { /* grammar hints are optional */ }
+
     rec.onstart = () => setStatus('listening')
 
     rec.onresult = (e) => {
@@ -277,7 +288,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const S = {
     en: {
       title:      '🎤 Speak Your Fortune',
-      heroHint:   'Say it in English or Chinese — game, zodiac & dream in one go',
+      heroHint:   'Say "4D" or "TOTO" first, then your zodiac & dream',
       stepHint:   'Say your zodiac or dream · English or 中文',
       example:    'e.g. "',
       tap:        'Tap mic & speak',
@@ -294,7 +305,7 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     },
     zh: {
       title:      '🎤 语音输入',
-      heroHint:   '中英文皆可 — 一次说出游戏、生肖和梦境',
+      heroHint:   '先说"4D"或"多多"，再说生肖和梦境',
       stepHint:   '说出您的生肖或梦境 · 中英文皆可',
       example:    '例如："',
       tap:        '点击麦克风说话',

@@ -106,6 +106,8 @@ const GAME_KW = {
   'four day':'4d', '4 day':'4d', 'four days':'4d',
   'for d':'4d', 'for dee':'4d', 'ford':'4d', 'fourd':'4d', 'foured':'4d',
   'fordy':'4d', 'fodi':'4d', 'foty':'4d', 'foti':'4d', 'foudy':'4d', 'forde':'4d',
+  'forty':'4d',             // most common speech-to-text output for Singlish "four-D"
+  'for the':'4d', 'for thee':'4d',  // "four dee" heard as "for the"
   // 4D — Hokkien/Cantonese phonetics ("sei di" / "si di")
   'sei di':'4d', 'sei d':'4d', 'si di':'4d', 'si d':'4d',
   // 4D — Chinese
@@ -115,7 +117,7 @@ const GAME_KW = {
   // TOTO — English phonetic
   'toto':'toto', 'lotto':'toto', 'lottery':'toto',
   'to to':'toto', 'toe toe':'toto', 'tota':'toto', 'totto':'toto',
-  'tow tow':'toto', 'dodo':'toto', 'tuda':'toto', 'tuta':'toto', 'tuto':'toto',
+  'tow tow':'toto', 'toe to':'toto', 'dodo':'toto', 'tuda':'toto', 'tuta':'toto', 'tuto':'toto',
   // TOTO — Chinese
   '多多':'toto', '多多博彩':'toto',
   '乐透':'toto', '樂透':'toto',    // generic "lotto" in Chinese
@@ -142,6 +144,10 @@ function normalizeTranscript(raw) {
   s = s.replace(/\b4\s+d(ee|i|ay)?\b/gi, '4d')
   // 4D — Singlish phonetic mishearings (fordy, foti, foty, etc.)
   s = s.replace(/\b(fordy|fodi|foty|foti|foudy|forde|fored)\b/gi, '4d')
+  // 4D — "forty" is the single most common speech-to-text output for Singlish "four-D"
+  s = s.replace(/\bforty\b/gi, '4d')
+  // 4D — "for the/thee" → speech engine mishearing "four dee" as "for the"
+  s = s.replace(/\bfor\s+thee?\b/gi, '4d')
   // 4D — Hokkien/Cantonese "sei di" / "si di"
   s = s.replace(/\bsei\s*d(ee|i|e|ay)?\b/gi, '4d')
   s = s.replace(/\bsi\s+d(ee|i|ay)?\b/gi, '4d')
@@ -149,6 +155,7 @@ function normalizeTranscript(raw) {
   // TOTO — phonetic variants (do this before any number work)
   s = s.replace(/\bto\s+to\b/gi, 'toto')
   s = s.replace(/\btow[\s-]?tow\b/gi, 'toto')
+  s = s.replace(/\btoe[\s-]?to\b/gi, 'toto')
   s = s.replace(/\b(dodo|tuda|tuta|tuto)\b/gi, 'toto')
   s = s.replace(/妥妥|拖拖|托托|多托|佗佗|哆哆|多度|多朵|多多多/g, 'toto')
   // TOTO — Chinese 乐透/樂透 (generic "lotto")
@@ -235,15 +242,15 @@ export function parseVoiceInput(transcript) {
 
 export const VOICE_EXAMPLES = {
   en: [
-    'I am a Dragon, dreamed of water',
-    'I dreamt of gold and fish',
-    'Generate TOTO numbers for me',
-    'I am a Scorpio, dreamed of fire',
+    '4D — Dragon, water',
+    'TOTO — Scorpio, fire',
+    '4D please, I am a Rabbit',
+    'Play TOTO, dreamed of gold',
   ],
   zh: [
-    '我属龙，梦见了水',
-    '我梦见了黄金和鱼',
-    '帮我生成多多号码',
-    '我是天蝎座，梦见了火',
+    '4D，属龙，梦见水',
+    '多多，天蝎座，梦见火',
+    '万字，属兔，梦见黄金',
+    '多多，梦见水和鱼',
   ],
 }
