@@ -98,15 +98,27 @@ const HOROSCOPE_KW = {
 }
 
 const GAME_KW = {
-  // 4D
+  // 4D — direct
   '4d':'4d', '4-d':'4d', '4 d':'4d',
-  'four d':'4d', 'four dee':'4d', 'four digit':'4d', 'four digits':'4d', 'four day':'4d', '4 day':'4d', 'four days':'4d',
+  '4 digit':'4d', '4 digits':'4d',
+  // 4D — English phonetic
+  'four d':'4d', 'four dee':'4d', 'four digit':'4d', 'four digits':'4d',
+  'four day':'4d', '4 day':'4d', 'four days':'4d',
   'for d':'4d', 'for dee':'4d', 'ford':'4d', 'fourd':'4d', 'foured':'4d',
-  '四维':'4d','四維':'4d',
-  // TOTO
+  'fordy':'4d', 'fodi':'4d', 'foty':'4d', 'foti':'4d', 'foudy':'4d', 'forde':'4d',
+  // 4D — Hokkien/Cantonese phonetics ("sei di" / "si di")
+  'sei di':'4d', 'sei d':'4d', 'si di':'4d', 'si d':'4d',
+  // 4D — Chinese
+  '四维':'4d', '四維':'4d',
+  '万字':'4d', '萬字':'4d',    // most common Singapore/Malaysia Chinese term for 4D
+  '四字':'4d',
+  // TOTO — English phonetic
   'toto':'toto', 'lotto':'toto', 'lottery':'toto',
   'to to':'toto', 'toe toe':'toto', 'tota':'toto', 'totto':'toto',
-  '多多':'toto','多多博彩':'toto',
+  'tow tow':'toto', 'dodo':'toto', 'tuda':'toto', 'tuta':'toto', 'tuto':'toto',
+  // TOTO — Chinese
+  '多多':'toto', '多多博彩':'toto',
+  '乐透':'toto', '樂透':'toto',    // generic "lotto" in Chinese
   // Both
   'both':'both', 'all':'both', 'everything':'both',
   '两个都':'both','兩個都':'both','全部':'both','都要':'both','全都':'both','两个':'both','兩個':'both',
@@ -121,17 +133,26 @@ function normalizeTranscript(raw) {
   let s = raw
 
   // 4D — Chinese "four" or Arabic 4 followed by any D-sound character
-  s = s.replace(/四\s*[dD地迪底弟的帝第得低滴嘀啲提题]/g, '4d')
-  s = s.replace(/4\s*[地迪底弟的帝第得低滴嘀啲提题]/g, '4d')
+  s = s.replace(/四\s*[dD地迪底弟的帝第得低滴嘀啲提题嘚碟蝶]/g, '4d')
+  s = s.replace(/4\s*[地迪底弟的帝第得低滴嘀啲提题嘚碟蝶]/g, '4d')
   // 4D — English phonetic mishearings
   s = s.replace(/\bford\b/gi, '4d')
-  s = s.replace(/\bfor\s+d(ee)?\b/gi, '4d')
-  s = s.replace(/\bfour\s+d(ee)?\b/gi, '4d')
-  s = s.replace(/\b4\s+d(ee)?\b/gi, '4d')
+  s = s.replace(/\bfor\s+d(ee|i|ay)?\b/gi, '4d')
+  s = s.replace(/\bfour\s+d(ee|i|ay)?\b/gi, '4d')
+  s = s.replace(/\b4\s+d(ee|i|ay)?\b/gi, '4d')
+  // 4D — Singlish phonetic mishearings (fordy, foti, foty, etc.)
+  s = s.replace(/\b(fordy|fodi|foty|foti|foudy|forde|fored)\b/gi, '4d')
+  // 4D — Hokkien/Cantonese "sei di" / "si di"
+  s = s.replace(/\bsei\s*d(ee|i|e|ay)?\b/gi, '4d')
+  s = s.replace(/\bsi\s+d(ee|i|ay)?\b/gi, '4d')
 
   // TOTO — phonetic variants (do this before any number work)
   s = s.replace(/\bto\s+to\b/gi, 'toto')
+  s = s.replace(/\btow[\s-]?tow\b/gi, 'toto')
+  s = s.replace(/\b(dodo|tuda|tuta|tuto)\b/gi, 'toto')
   s = s.replace(/妥妥|拖拖|托托|多托|佗佗|哆哆|多度|多朵|多多多/g, 'toto')
+  // TOTO — Chinese 乐透/樂透 (generic "lotto")
+  s = s.replace(/乐透|樂透/g, 'toto')
 
   // BOTH — handle multi-char "both" phrases BEFORE number conversion so 两 survives
   s = s.replace(/两个都|兩個都|全部都|全都|两个|兩個/g, ' both ')
