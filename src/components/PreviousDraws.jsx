@@ -23,7 +23,7 @@ function FourDDrawCard({ draw }) {
   return (
     <div
       className="rounded-2xl p-5"
-      style={{ background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.15)' }}
+      style={{ background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(220,38,38,0.25)' }}
     >
       <div className="flex items-start justify-between mb-5">
         <div>
@@ -101,7 +101,7 @@ function TotoDrawCard({ draw }) {
   return (
     <div
       className="rounded-2xl p-5"
-      style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}
+      style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.22)' }}
     >
       <div className="flex items-start justify-between mb-5">
         <div>

@@ -59,7 +59,7 @@ export default function HotNumbers({ gameType, draws4D, drawsToto, lang = 'en' }
   return (
     <div
       className="w-full max-w-3xl mx-auto px-6 mb-10 rounded-2xl p-5"
-      style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}
+      style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.22)' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">

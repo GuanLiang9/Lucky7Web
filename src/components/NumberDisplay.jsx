@@ -76,12 +76,14 @@ function SlotReel({ finalDigit, spinDelay, onRefresh, position, interactive }) {
 
       {/* Reel window — slot-machine dark frame with gradient overlays */}
       <div style={{
-        position: 'relative', width: 66, height: 86,
-        background: 'linear-gradient(180deg,#0c0303 0%,#1c0606 50%,#0c0303 100%)',
-        borderRadius: 13,
-        border: `2px solid ${isLocked ? 'rgba(251,191,36,0.75)' : 'rgba(251,191,36,0.18)'}`,
+        position: 'relative',
+        width: 'clamp(58px, 16vw, 70px)',
+        height: 'clamp(76px, 21vw, 90px)',
+        background: 'linear-gradient(180deg,#110404 0%,#200606 50%,#110404 100%)',
+        borderRadius: 14,
+        border: `2px solid ${isLocked ? 'rgba(251,191,36,0.85)' : 'rgba(251,191,36,0.22)'}`,
         boxShadow: isLocked
-          ? '0 0 28px rgba(251,191,36,0.4),0 0 8px rgba(220,38,38,0.2),inset 0 0 14px rgba(0,0,0,0.7)'
+          ? '0 0 32px rgba(251,191,36,0.52),0 0 10px rgba(239,68,68,0.25),inset 0 0 14px rgba(0,0,0,0.7)'
           : 'inset 0 0 14px rgba(0,0,0,0.7)',
         overflow: 'hidden',
         transition: 'border-color 0.4s,box-shadow 0.5s',
@@ -90,15 +92,17 @@ function SlotReel({ finalDigit, spinDelay, onRefresh, position, interactive }) {
         {/* Top/bottom fade — creates the "viewing window" illusion */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-          background: 'linear-gradient(to bottom,rgba(8,2,2,0.88) 0%,transparent 30%,transparent 70%,rgba(8,2,2,0.88) 100%)',
+          background: 'linear-gradient(to bottom,rgba(15,3,3,0.92) 0%,transparent 30%,transparent 70%,rgba(15,3,3,0.92) 100%)',
         }} />
         {/* Payline guides */}
-        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% - 20px)', height:1, background:'rgba(251,191,36,0.38)', zIndex:3 }} />
-        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% + 19px)', height:1, background:'rgba(251,191,36,0.38)', zIndex:3 }} />
+        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% - 20px)', height:1, background:'rgba(251,191,36,0.50)', zIndex:3 }} />
+        <div style={{ position:'absolute', left:7, right:7, top:'calc(50% + 19px)', height:1, background:'rgba(251,191,36,0.50)', zIndex:3 }} />
         {/* Digit */}
         <div style={{ position:'absolute', inset:0, zIndex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <span style={{
-            fontSize: '3rem', fontWeight: 900, fontVariantNumeric: 'tabular-nums',
+            fontSize: 'clamp(2.4rem, 6.5vw, 3rem)',
+            fontWeight: 900,
+            fontVariantNumeric: 'tabular-nums',
             color: isLocked ? '#fde68a' : '#fbbf24',
             filter: phase==='fast' ? 'blur(4px)' : phase==='slowing' ? 'blur(2px)' : phase==='countdown' ? 'blur(0.6px)' : 'none',
             transition: 'filter 0.2s,color 0.3s',
@@ -111,7 +115,7 @@ function SlotReel({ finalDigit, spinDelay, onRefresh, position, interactive }) {
       </div>
 
       {interactive && isLocked && (
-        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color:'rgba(251,191,36,0.55)' }}>
+        <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color:'rgba(251,191,36,0.65)' }}>
           tap
         </span>
       )}
@@ -190,13 +194,13 @@ function FourDSet({ number, mood, dreams, draws4D, onUpdate, revealDelay, intera
 
   return (
     <div
-      className="glass-strong rounded-2xl p-6 text-center overflow-hidden"
+      className="glass-strong rounded-2xl p-5 sm:p-6 text-center overflow-hidden"
       style={{ animation: `setSlideIn 0.5s ease-out ${revealDelay}ms both` }}
     >
-      <div className="text-base uppercase tracking-widest mb-5" style={{ color: 'rgba(251,191,36,0.5)' }}>
+      <div className="text-sm uppercase tracking-widest mb-4" style={{ color: 'rgba(251,191,36,0.65)' }}>
         {t('luckyPick', lang)}
       </div>
-      <div className="flex gap-3 justify-center mb-4">
+      <div className="flex gap-2 sm:gap-3 justify-center mb-4">
         {digits.map((d, i) => (
           <SlotReel
             key={i}
@@ -208,7 +212,7 @@ function FourDSet({ number, mood, dreams, draws4D, onUpdate, revealDelay, intera
           />
         ))}
       </div>
-      <div className="text-sm mt-1" style={{ color: 'rgba(250,245,240,0.25)' }}>
+      <div className="text-sm mt-1" style={{ color: 'rgba(250,245,240,0.30)' }}>
         {interactive ? t('tapToChange', lang) : ''}
       </div>
     </div>
@@ -221,10 +225,10 @@ function TotoBall({ number, index, onSwap, isSwapping, isRoll = false, delay = 0
   if (isRoll) {
     return (
       <div
-        className="w-14 h-14 rounded-full font-black text-lg flex items-center justify-center"
+        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full font-black text-base sm:text-lg flex items-center justify-center"
         style={{
-          background: 'rgba(139,92,246,0.18)',
-          border: '2px solid rgba(139,92,246,0.55)',
+          background: 'rgba(139,92,246,0.22)',
+          border: '2px solid rgba(139,92,246,0.65)',
           color: '#c4b5fd',
           animation: `ballReveal 0.5s cubic-bezier(0.175,0.885,0.32,1.275) ${delay}ms both`,
         }}
@@ -234,7 +238,7 @@ function TotoBall({ number, index, onSwap, isSwapping, isRoll = false, delay = 0
   return (
     <button
       onClick={onSwap ? () => onSwap(index) : undefined}
-      className="toto-ball w-14 h-14 rounded-full font-black text-xl flex items-center justify-center transition-all active:scale-95"
+      className="toto-ball w-12 h-12 sm:w-14 sm:h-14 rounded-full font-black text-lg sm:text-xl flex items-center justify-center transition-all active:scale-95"
       style={{
         animation: `ballReveal 0.5s cubic-bezier(0.175,0.885,0.32,1.275) ${delay}ms both`,
         ...(isSwapping && { opacity: 0.4, animation: 'spin 0.4s linear' }),
@@ -561,18 +565,18 @@ export default function NumberDisplay({ gameType, mood, dreams, zodiac, horoscop
     <div className="w-full max-w-3xl mx-auto px-6 mb-16" style={{ animation: 'slideUp 0.6s ease-out both' }}>
 
       {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 mb-5"
-          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)' }}>
-          <span className="text-xl">🏮</span>
-          <span className="text-sm uppercase tracking-widest font-bold" style={{ color: '#fbbf24' }}>
+      <div className="text-center mb-8 sm:mb-12">
+        <div className="inline-flex items-center gap-2 rounded-full px-5 sm:px-6 py-2 sm:py-2.5 mb-4 sm:mb-5"
+          style={{ background: 'rgba(251,191,36,0.13)', border: '1px solid rgba(251,191,36,0.38)', boxShadow: '0 0 24px rgba(251,191,36,0.12)' }}>
+          <span className="text-lg sm:text-xl">🏮</span>
+          <span className="text-xs sm:text-sm uppercase tracking-widest font-bold" style={{ color: '#fde68a' }}>
             {t('fortuneTitle', lang)}
           </span>
-          <span className="text-xl">🏮</span>
+          <span className="text-lg sm:text-xl">🏮</span>
         </div>
-        <h2 className="text-5xl font-black gradient-text-gold">天赐幸运</h2>
-        <p className="text-base mt-2" style={{ color: 'rgba(250,245,240,0.3)' }}>{t('fortuneSubtitle', lang)}</p>
-        <div className="gold-line w-32 mx-auto mt-4" />
+        <h2 className="text-4xl sm:text-5xl font-black gradient-text-gold">天赐幸运</h2>
+        <p className="text-sm sm:text-base mt-2" style={{ color: 'rgba(250,245,240,0.38)' }}>{t('fortuneSubtitle', lang)}</p>
+        <div className="gold-line w-24 sm:w-32 mx-auto mt-3 sm:mt-4" />
       </div>
 
       {generating ? (

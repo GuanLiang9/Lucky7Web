@@ -23,28 +23,38 @@ function StepBar({ step, lang }) {
     { n: 3, label: t('step3Title', lang) },
   ]
   return (
-    <div className="flex items-center justify-center gap-0 mb-10 px-6">
+    <div className="flex items-center justify-center gap-0 mb-8 px-3">
       {steps.map((s, i) => (
         <React.Fragment key={s.n}>
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-1">
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center font-black text-base transition-all duration-300"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-black text-sm sm:text-base transition-all duration-300"
               style={{
-                background: step >= s.n ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'rgba(255,255,255,0.06)',
-                border: step >= s.n ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                background: step >= s.n ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'rgba(255,255,255,0.07)',
+                border: step >= s.n ? 'none' : '1px solid rgba(255,255,255,0.14)',
                 color: step >= s.n ? '#fff' : 'rgba(250,245,240,0.3)',
-                boxShadow: step === s.n ? '0 0 20px rgba(220,38,38,0.4)' : 'none',
+                boxShadow: step === s.n ? '0 0 24px rgba(239,68,68,0.55)' : 'none',
               }}
             >
               {step > s.n ? '✓' : s.n}
             </div>
-            <div className="text-xs font-semibold text-center w-20" style={{ color: step >= s.n ? '#fbbf24' : 'rgba(250,245,240,0.25)' }}>
+            <div
+              className="text-xs font-semibold text-center leading-tight"
+              style={{ width: '4.2rem', color: step >= s.n ? '#fbbf24' : 'rgba(250,245,240,0.25)' }}
+            >
               {s.label}
             </div>
           </div>
           {i < steps.length - 1 && (
-            <div className="w-12 h-0.5 mb-5 mx-1 transition-all duration-300"
-              style={{ background: step > s.n ? 'rgba(220,38,38,0.6)' : 'rgba(255,255,255,0.08)' }} />
+            <div
+              className="h-0.5 mb-4 sm:mb-5 flex-shrink-0 transition-all duration-300"
+              style={{
+                width: 'clamp(1.5rem, 5vw, 3.5rem)',
+                marginLeft: '0.25rem',
+                marginRight: '0.25rem',
+                background: step > s.n ? 'rgba(239,68,68,0.65)' : 'rgba(255,255,255,0.09)',
+              }}
+            />
           )}
         </React.Fragment>
       ))}
@@ -56,10 +66,10 @@ function StepBar({ step, lang }) {
 
 function SectionDivider({ label }) {
   return (
-    <div className="flex items-center gap-4 px-6 mb-10 max-w-3xl mx-auto">
-      <div className="flex-1" style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(251,191,36,0.25))' }} />
-      <span className="text-sm uppercase tracking-widest flex-shrink-0" style={{ color: 'rgba(251,191,36,0.4)' }}>◆ {label} ◆</span>
-      <div className="flex-1" style={{ height: 1, background: 'linear-gradient(to left, transparent, rgba(251,191,36,0.25))' }} />
+    <div className="flex items-center gap-4 px-6 mb-8 sm:mb-10 max-w-3xl mx-auto">
+      <div className="flex-1" style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(251,191,36,0.40))' }} />
+      <span className="text-xs sm:text-sm uppercase tracking-widest flex-shrink-0" style={{ color: 'rgba(251,191,36,0.58)' }}>◆ {label} ◆</span>
+      <div className="flex-1" style={{ height: 1, background: 'linear-gradient(to left, transparent, rgba(251,191,36,0.40))' }} />
     </div>
   )
 }
@@ -236,37 +246,37 @@ export default function App() {
       )}
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'rgba(8,2,2,0.88)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(251,191,36,0.1)' }}>
-        <div className="max-w-3xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
-          <span className="font-black text-2xl tracking-tight flex-shrink-0">
+      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'rgba(15,3,3,0.95)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(251,191,36,0.20)' }}>
+        <div className="max-w-3xl mx-auto px-4 sm:px-5 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
+          <span className="font-black text-xl sm:text-2xl tracking-tight flex-shrink-0">
             <span style={{ color: '#faf5f0' }}>Lucky</span>
             <span className="gradient-text-gold"> 7</span>
-            <span className="text-base ml-2 font-normal" style={{ color: 'rgba(251,191,36,0.35)' }}>幸运</span>
+            <span className="text-sm sm:text-base ml-2 font-normal hidden sm:inline" style={{ color: 'rgba(251,191,36,0.45)' }}>幸运</span>
           </span>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Language toggle */}
             <button
               onClick={() => setLang(l => l === 'en' ? 'zh' : 'en')}
-              className="rounded-full px-4 py-1.5 font-bold text-sm transition-all"
-              style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}
+              className="rounded-full px-3 sm:px-4 py-1.5 font-bold text-sm transition-all"
+              style={{ background: 'rgba(251,191,36,0.16)', border: '1px solid rgba(251,191,36,0.40)', color: '#fde68a' }}
             >
               {lang === 'en' ? '中文' : 'EN'}
             </button>
 
             {updatedLabel && (
-              <span className="text-sm hidden sm:block" style={{ color: 'rgba(250,245,240,0.25)' }}>{updatedLabel}</span>
+              <span className="text-xs hidden md:block" style={{ color: 'rgba(250,245,240,0.30)' }}>{updatedLabel}</span>
             )}
             <div
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+              className="flex items-center gap-1.5 rounded-full px-2.5 sm:px-3 py-1.5"
               style={{
-                background: loadingResults ? 'rgba(100,100,100,0.1)' : resultsLive['4d'] || resultsLive.toto ? 'rgba(220,38,38,0.1)' : 'rgba(251,191,36,0.08)',
-                border: `1px solid ${loadingResults ? 'rgba(100,100,100,0.2)' : resultsLive['4d'] || resultsLive.toto ? 'rgba(220,38,38,0.25)' : 'rgba(251,191,36,0.2)'}`,
+                background: loadingResults ? 'rgba(100,100,100,0.12)' : resultsLive['4d'] || resultsLive.toto ? 'rgba(220,38,38,0.15)' : 'rgba(251,191,36,0.12)',
+                border: `1px solid ${loadingResults ? 'rgba(100,100,100,0.25)' : resultsLive['4d'] || resultsLive.toto ? 'rgba(220,38,38,0.40)' : 'rgba(251,191,36,0.32)'}`,
               }}
             >
               <span className="w-2 h-2 rounded-full animate-pulse"
                 style={{ background: loadingResults ? '#6b7280' : resultsLive['4d'] || resultsLive.toto ? '#f87171' : '#fbbf24' }} />
-              <span className="text-sm font-semibold"
+              <span className="text-xs sm:text-sm font-semibold"
                 style={{ color: loadingResults ? '#6b7280' : resultsLive['4d'] || resultsLive.toto ? '#f87171' : '#fbbf24' }}>
                 {loadingResults ? t('loading', lang) : resultsLive['4d'] || resultsLive.toto ? t('live', lang) : t('cached', lang)}
               </span>
@@ -300,15 +310,15 @@ export default function App() {
                 <button
                   onClick={goToStep2}
                   disabled={!gameType}
-                  className="px-14 py-5 rounded-full font-black text-lg uppercase tracking-widest text-white transition-all active:scale-95"
+                  className="px-10 sm:px-14 py-4 sm:py-5 rounded-full font-black text-lg uppercase tracking-widest text-white transition-all active:scale-95"
                   style={gameType ? {
-                    background: 'linear-gradient(135deg,#dc2626,#b91c1c)',
-                    boxShadow: '0 0 40px rgba(220,38,38,0.3)',
+                    background: 'linear-gradient(135deg,#ef4444,#dc2626)',
+                    boxShadow: '0 0 44px rgba(239,68,68,0.48), 0 4px 20px rgba(0,0,0,0.4)',
                     cursor: 'pointer',
                   } : {
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    color: 'rgba(250,245,240,0.25)',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    color: 'rgba(250,245,240,0.28)',
                     cursor: 'not-allowed',
                   }}
                   onMouseEnter={e => { if (gameType) e.currentTarget.style.transform = 'scale(1.05)' }}
@@ -416,8 +426,8 @@ export default function App() {
               <div className="text-center px-6 pb-16 space-y-4">
                 <button
                   onClick={handleGenerate}
-                  className="block w-full max-w-sm mx-auto px-14 py-5 rounded-full font-black text-xl uppercase tracking-widest text-white active:scale-95 transition-all"
-                  style={{ background: 'linear-gradient(135deg,#dc2626,#b91c1c)', boxShadow: '0 0 50px rgba(220,38,38,0.35)', cursor: 'pointer' }}
+                  className="block w-full max-w-sm mx-auto px-10 sm:px-14 py-4 sm:py-5 rounded-full font-black text-xl uppercase tracking-widest text-white active:scale-95 transition-all"
+                  style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', boxShadow: '0 0 54px rgba(239,68,68,0.52), 0 4px 24px rgba(0,0,0,0.4)', cursor: 'pointer' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
                 >
@@ -458,8 +468,8 @@ export default function App() {
               <div className="text-center px-6 mb-10 flex flex-col items-center gap-3">
                 <button
                   onClick={handleGenerate}
-                  className="px-12 py-4 rounded-full font-black text-base uppercase tracking-widest text-white transition-all active:scale-95"
-                  style={{ background: 'linear-gradient(135deg,#dc2626,#b91c1c)', boxShadow: '0 0 30px rgba(220,38,38,0.25)', cursor: 'pointer' }}
+                  className="px-10 sm:px-12 py-4 rounded-full font-black text-base uppercase tracking-widest text-white transition-all active:scale-95"
+                  style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)', boxShadow: '0 0 38px rgba(239,68,68,0.45), 0 4px 16px rgba(0,0,0,0.4)', cursor: 'pointer' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
                 >
@@ -494,26 +504,26 @@ export default function App() {
       {/* ── Mobile sticky bottom bar (shows during step 1 & 2) ── */}
       {started && step < 3 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden"
-          style={{ background: 'rgba(8,2,2,0.96)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(251,191,36,0.15)', padding: '12px 20px env(safe-area-inset-bottom, 20px)' }}>
+          style={{ background: 'rgba(15,3,3,0.97)', backdropFilter: 'blur(24px)', borderTop: '1px solid rgba(251,191,36,0.24)', padding: '10px 16px env(safe-area-inset-bottom, 16px)' }}>
           <div className="flex items-center gap-3 max-w-sm mx-auto">
             {step === 2 && (
               <button onClick={goToStep1}
-                className="flex-shrink-0 h-14 px-5 rounded-full font-bold text-base transition-all active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(250,245,240,0.5)' }}>
+                className="flex-shrink-0 h-13 px-5 rounded-full font-bold text-base transition-all active:scale-95"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.16)', color: 'rgba(250,245,240,0.6)' }}>
                 ←
               </button>
             )}
             <button
               onClick={step === 1 ? goToStep2 : handleGenerate}
               disabled={!gameType}
-              className="flex-1 h-14 rounded-full font-black text-lg uppercase tracking-wider text-white transition-all active:scale-95"
+              className="flex-1 h-13 rounded-full font-black text-base uppercase tracking-wider text-white transition-all active:scale-95"
               style={gameType ? {
-                background: 'linear-gradient(135deg,#dc2626,#b91c1c)',
-                boxShadow: '0 0 30px rgba(220,38,38,0.35)',
+                background: 'linear-gradient(135deg,#ef4444,#dc2626)',
+                boxShadow: '0 0 32px rgba(239,68,68,0.50)',
               } : {
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: 'rgba(250,245,240,0.25)',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.10)',
+                color: 'rgba(250,245,240,0.28)',
               }}
             >
               {step === 1

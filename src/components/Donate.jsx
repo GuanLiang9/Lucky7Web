@@ -69,7 +69,7 @@ export default function Donate() {
     <div className="w-full max-w-3xl mx-auto px-6 mb-16">
       <div
         className="rounded-3xl p-6 sm:p-8 text-center"
-        style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.15)' }}
+        style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.28)' }}
       >
         {/* Header */}
         <div className="flex justify-center mb-3" style={{ animation: 'float 3s ease-in-out infinite' }}>

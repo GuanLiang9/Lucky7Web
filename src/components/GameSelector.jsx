@@ -13,12 +13,12 @@ const games = [
     prize: 'Up to S$2,000',
     prizeNote: 'per S$1 Big Bet',
     activeStyle: {
-      background: 'rgba(220,38,38,0.18)',
-      borderColor: 'rgba(220,38,38,0.6)',
-      boxShadow: '0 0 30px rgba(220,38,38,0.15)',
+      background: 'rgba(239,68,68,0.22)',
+      borderColor: 'rgba(239,68,68,0.70)',
+      boxShadow: '0 0 36px rgba(239,68,68,0.22)',
     },
     activeLabelColor: '#f87171',
-    dot: '#dc2626',
+    dot: '#ef4444',
   },
   {
     id: 'toto',
@@ -31,11 +31,11 @@ const games = [
     prize: 'S$3.2M Jackpot',
     prizeNote: 'Current pool',
     activeStyle: {
-      background: 'rgba(251,191,36,0.12)',
-      borderColor: 'rgba(251,191,36,0.5)',
-      boxShadow: '0 0 30px rgba(251,191,36,0.12)',
+      background: 'rgba(251,191,36,0.18)',
+      borderColor: 'rgba(251,191,36,0.65)',
+      boxShadow: '0 0 36px rgba(251,191,36,0.18)',
     },
-    activeLabelColor: '#fbbf24',
+    activeLabelColor: '#fde68a',
     dot: '#fbbf24',
   },
   {
@@ -49,9 +49,9 @@ const games = [
     prize: 'Double chances',
     prizeNote: 'Combined fortune',
     activeStyle: {
-      background: 'rgba(249,115,22,0.15)',
-      borderColor: 'rgba(249,115,22,0.5)',
-      boxShadow: '0 0 30px rgba(249,115,22,0.12)',
+      background: 'rgba(249,115,22,0.20)',
+      borderColor: 'rgba(249,115,22,0.65)',
+      boxShadow: '0 0 36px rgba(249,115,22,0.18)',
     },
     activeLabelColor: '#fb923c',
     dot: '#f97316',
@@ -77,15 +77,15 @@ const matchOptions = [
 ]
 
 const activePill = {
-  background: 'rgba(251,191,36,0.2)',
-  border: '1px solid rgba(251,191,36,0.6)',
-  color: '#fbbf24',
+  background: 'rgba(251,191,36,0.22)',
+  border: '1px solid rgba(251,191,36,0.70)',
+  color: '#fde68a',
 }
 
 const inactivePill = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: 'rgba(250,245,240,0.4)',
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.14)',
+  color: 'rgba(250,245,240,0.48)',
 }
 
 export default function GameSelector({ selected, onSelect, totoConfig, onTotoConfig, lang = 'en' }) {
@@ -114,21 +114,21 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
             <button
               key={game.id}
               onClick={() => onSelect(game.id)}
-              className="relative rounded-2xl p-4 text-left transition-all duration-300 hover:scale-[1.02] flex sm:block items-center gap-4"
+              className="relative rounded-2xl p-4 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex sm:block items-center gap-4"
               style={{
-                background: isSelected ? game.activeStyle.background : 'rgba(220,38,38,0.06)',
-                border: `1px solid ${isSelected ? game.activeStyle.borderColor : 'rgba(220,38,38,0.15)'}`,
+                background: isSelected ? game.activeStyle.background : 'rgba(220,38,38,0.09)',
+                border: `1.5px solid ${isSelected ? game.activeStyle.borderColor : 'rgba(220,38,38,0.22)'}`,
                 boxShadow: isSelected ? game.activeStyle.boxShadow : 'none',
               }}
             >
               {isSelected && (
                 <div
-                  className="absolute top-3 right-3 w-2 h-2 rounded-full"
-                  style={{ background: game.dot, animation: 'goldPulse 2s ease-in-out infinite', boxShadow: `0 0 8px ${game.dot}` }}
+                  className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full"
+                  style={{ background: game.dot, animation: 'goldPulse 2s ease-in-out infinite', boxShadow: `0 0 10px ${game.dot}` }}
                 />
               )}
 
-              <div className="text-5xl sm:mb-3 flex-shrink-0">{game.icon}</div>
+              <div className="text-4xl sm:text-5xl sm:mb-3 flex-shrink-0">{game.icon}</div>
 
               <div className="flex-1">
                 <div className="flex items-baseline gap-2 mb-0.5">
@@ -138,20 +138,27 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
                   >
                     {game.label}
                   </span>
-                  <span className="text-sm" style={{ color: 'rgba(251,191,36,0.35)' }}>{game.chinese}</span>
+                  <span className="text-sm" style={{ color: 'rgba(251,191,36,0.45)' }}>{game.chinese}</span>
                 </div>
 
-                <div className="text-sm mb-0.5" style={{ color: 'rgba(250,245,240,0.45)' }}>{game.description}</div>
-                <div className="text-sm font-mono" style={{ color: 'rgba(250,245,240,0.3)' }}>{game.range}</div>
+                <div className="text-sm mb-0.5" style={{ color: 'rgba(250,245,240,0.52)' }}>{game.description}</div>
+                <div className="text-xs sm:text-sm font-mono" style={{ color: 'rgba(250,245,240,0.35)' }}>{game.range}</div>
 
-                <div className="hidden sm:block text-sm mt-3 pt-2" style={{ color: 'rgba(250,245,240,0.25)', borderTop: '1px solid rgba(251,191,36,0.08)' }}>
+                {/* Prize visible on mobile (compact) */}
+                <div className="sm:hidden mt-1.5">
+                  <span className="text-xs font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.48)' }}>
+                    {game.prize}
+                  </span>
+                </div>
+
+                <div className="hidden sm:block text-sm mt-3 pt-2" style={{ color: 'rgba(250,245,240,0.30)', borderTop: '1px solid rgba(251,191,36,0.12)' }}>
                   {game.draws}
                 </div>
                 <div className="hidden sm:block mt-2">
-                  <div className="text-sm font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.35)' }}>
+                  <div className="text-sm font-bold" style={{ color: isSelected ? game.activeLabelColor : 'rgba(251,191,36,0.45)' }}>
                     {game.prize}
                   </div>
-                  <div className="text-sm" style={{ color: 'rgba(250,245,240,0.2)' }}>{game.prizeNote}</div>
+                  <div className="text-sm" style={{ color: 'rgba(250,245,240,0.25)' }}>{game.prizeNote}</div>
                 </div>
               </div>
             </button>
@@ -163,8 +170,8 @@ export default function GameSelector({ selected, onSelect, totoConfig, onTotoCon
         <div
           className="rounded-2xl p-4 mt-4"
           style={{
-            background: 'rgba(251,191,36,0.04)',
-            border: '1px solid rgba(251,191,36,0.12)',
+            background: 'rgba(251,191,36,0.07)',
+            border: '1px solid rgba(251,191,36,0.22)',
             animation: 'slideUp 0.25s ease-out both',
           }}
         >

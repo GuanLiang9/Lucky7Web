@@ -33,18 +33,18 @@ export default function ZodiacPicker({ selectedZodiac, selectedHoroscope, onZodi
               <button
                 key={z.id}
                 onClick={() => onZodiacSelect(isSelected ? null : z)}
-                className="rounded-2xl p-3 text-center transition-all duration-200 hover:scale-[1.05] active:scale-95"
+                className="rounded-2xl p-2 sm:p-3 text-center transition-all duration-200 hover:scale-[1.05] active:scale-95"
                 style={{
-                  background: isSelected ? 'rgba(251,191,36,0.15)' : 'rgba(220,38,38,0.06)',
-                  border: `2px solid ${isSelected ? 'rgba(251,191,36,0.6)' : 'rgba(220,38,38,0.15)'}`,
-                  boxShadow: isSelected ? '0 0 20px rgba(251,191,36,0.12)' : 'none',
+                  background: isSelected ? 'rgba(251,191,36,0.18)' : 'rgba(220,38,38,0.09)',
+                  border: `2px solid ${isSelected ? 'rgba(251,191,36,0.72)' : 'rgba(220,38,38,0.22)'}`,
+                  boxShadow: isSelected ? '0 0 22px rgba(251,191,36,0.18)' : 'none',
                 }}
               >
-                <div className="text-3xl mb-1">{z.emoji}</div>
-                <div className="text-sm font-black leading-tight" style={{ color: isSelected ? '#fbbf24' : '#faf5f0' }}>
+                <div className="text-2xl sm:text-3xl mb-0.5 sm:mb-1">{z.emoji}</div>
+                <div className="text-xs sm:text-sm font-black leading-tight" style={{ color: isSelected ? '#fde68a' : '#faf5f0' }}>
                   {lang === 'zh' ? z.zh : z.en}
                 </div>
-                <div className="text-xs font-medium" style={{ color: isSelected ? 'rgba(251,191,36,0.7)' : 'rgba(251,191,36,0.35)' }}>
+                <div className="text-xs font-medium hidden sm:block" style={{ color: isSelected ? 'rgba(251,191,36,0.75)' : 'rgba(251,191,36,0.42)' }}>
                   {lang === 'zh' ? z.en : z.zh}
                 </div>
               </button>
@@ -102,18 +102,18 @@ export default function ZodiacPicker({ selectedZodiac, selectedHoroscope, onZodi
                 <button
                   key={z.id}
                   onClick={() => onHoroscopeSelect(isSelected ? null : z)}
-                  className="rounded-xl p-3 text-center transition-all duration-200 hover:scale-[1.03] active:scale-95"
+                  className="rounded-xl p-2.5 sm:p-3 text-center transition-all duration-200 hover:scale-[1.03] active:scale-95"
                   style={{
-                    background: isSelected ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.04)',
-                    border: `1px solid ${isSelected ? 'rgba(139,92,246,0.5)' : 'rgba(139,92,246,0.15)'}`,
-                    boxShadow: isSelected ? '0 0 16px rgba(139,92,246,0.12)' : 'none',
+                    background: isSelected ? 'rgba(139,92,246,0.20)' : 'rgba(139,92,246,0.07)',
+                    border: `1px solid ${isSelected ? 'rgba(139,92,246,0.62)' : 'rgba(139,92,246,0.22)'}`,
+                    boxShadow: isSelected ? '0 0 20px rgba(139,92,246,0.18)' : 'none',
                   }}
                 >
-                  <div className="text-2xl mb-1">{z.emoji}</div>
+                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{z.emoji}</div>
                   <div className="text-xs font-bold leading-tight" style={{ color: isSelected ? '#c4b5fd' : '#faf5f0' }}>
                     {lang === 'zh' ? z.zh : z.en}
                   </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'rgba(250,245,240,0.3)' }}>{z.date}</div>
+                  <div className="text-xs mt-0.5 hidden sm:block" style={{ color: 'rgba(250,245,240,0.35)' }}>{z.date}</div>
                 </button>
               )
             })}
