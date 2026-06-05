@@ -23,7 +23,7 @@ function firstGuessLang(appLang) {
 
 // Did the parser extract anything actionable?
 function hasAnyMatch(r) {
-  return !!(r && (r.gameType || r.zodiac || r.horoscope || r.mood || (r.dreams && r.dreams.length)))
+  return !!(r && (r.gameType || r.zodiac || r.horoscope || (r.dreams && r.dreams.length)))
 }
 
 // Language-family helpers (for the bilingual two-pass logic)
@@ -264,12 +264,6 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     label: lang === 'zh' ? detected.horoscope.zh : detected.horoscope.en,
     color: { bg:'rgba(139,92,246,0.12)', border:'rgba(139,92,246,0.4)', text:'#c4b5fd' },
   })
-  if (detected?.mood) pills.push({
-    key: 'mood',
-    emoji: detected.mood.emoji,
-    label: lang === 'zh' ? detected.mood.chinese : detected.mood.label,
-    color: { bg:'rgba(16,185,129,0.12)', border:'rgba(16,185,129,0.4)', text:'#34d399' },
-  })
   detected?.dreams?.forEach(d => pills.push({
     key: d.id,
     emoji: d.emoji,
@@ -283,8 +277,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
   const S = {
     en: {
       title:      '🎤 Speak Your Fortune',
-      heroHint:   'Say it in English or Chinese — game, zodiac, mood & dream in one go',
-      stepHint:   'Say your zodiac, mood or dream · English or 中文',
+      heroHint:   'Say it in English or Chinese — game, zodiac & dream in one go',
+      stepHint:   'Say your zodiac or dream · English or 中文',
       example:    'e.g. "',
       tap:        'Tap mic & speak',
       listening:  '🔴 Listening… speak now',
@@ -300,8 +294,8 @@ export default function VoiceInput({ onResult, lang = 'en', heroMode = false }) 
     },
     zh: {
       title:      '🎤 语音输入',
-      heroHint:   '中英文皆可 — 一次说出游戏、生肖、心情和梦境',
-      stepHint:   '说出您的生肖、心情或梦境 · 中英文皆可',
+      heroHint:   '中英文皆可 — 一次说出游戏、生肖和梦境',
+      stepHint:   '说出您的生肖或梦境 · 中英文皆可',
       example:    '例如："',
       tap:        '点击麦克风说话',
       listening:  '🔴 聆听中… 请说话',

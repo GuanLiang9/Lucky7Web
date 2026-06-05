@@ -1,10 +1,9 @@
 // Voice input parser — maps spoken words to app selections.
 // Handles English, Mandarin (simplified + traditional + homophones), and
-// common Singlish phrases. Returns { zodiac, horoscope, dreams, mood, gameType }.
+// common Singlish phrases. Returns { zodiac, horoscope, dreams, gameType }.
 
 import { CHINESE_ZODIAC, WESTERN_ZODIAC } from '../data/zodiac.js'
 import { dreamCategories } from '../data/dreams.js'
-import { moods } from '../data/moods.js'
 
 const ALL_DREAMS = dreamCategories.flatMap(c => c.items)
 
@@ -13,18 +12,18 @@ const ALL_DREAMS = dreamCategories.flatMap(c => c.items)
 
 const ZODIAC_KW = {
   // English
-  rat:'rat', mouse:'rat', mice:'rat',
-  ox:'ox', cow:'ox', bull:'ox', cattle:'ox', buffalo:'ox',
-  tiger:'tiger',
-  rabbit:'rabbit', bunny:'rabbit', hare:'rabbit',
-  dragon:'dragon',
-  snake:'snake', serpent:'snake',
-  horse:'horse',
-  goat:'goat', sheep:'goat', ram:'goat', lamb:'goat',
-  monkey:'monkey', ape:'monkey',
-  rooster:'rooster', chicken:'rooster', hen:'rooster', cock:'rooster',
-  dog:'dog', puppy:'dog', hound:'dog',
-  pig:'pig', boar:'pig', hog:'pig',
+  rat:'rat', mouse:'rat', mice:'rat', mousey:'rat', ratty:'rat',
+  ox:'ox', cow:'ox', bull:'ox', cattle:'ox', buffalo:'ox', oxen:'ox', calf:'ox',
+  tiger:'tiger', tigger:'tiger', tigress:'tiger', 'tie ger':'tiger',
+  rabbit:'rabbit', bunny:'rabbit', hare:'rabbit', 'rab it':'rabbit',
+  dragon:'dragon', 'drag on':'dragon', dragons:'dragon',
+  snake:'snake', serpent:'snake', cobra:'snake', python:'snake', snek:'snake',
+  horse:'horse', pony:'horse', stallion:'horse', mare:'horse',
+  goat:'goat', sheep:'goat', ram:'goat', lamb:'goat', ewe:'goat',
+  monkey:'monkey', ape:'monkey', gorilla:'monkey', chimp:'monkey',
+  rooster:'rooster', chicken:'rooster', hen:'rooster', cock:'rooster', cockerel:'rooster',
+  dog:'dog', puppy:'dog', hound:'dog', doggy:'dog', doggie:'dog',
+  pig:'pig', boar:'pig', hog:'pig', piggy:'pig', porky:'pig', swine:'pig',
   // Mandarin — simplified, traditional, common phrasings & homophones
   '鼠':'rat','老鼠':'rat','耗子':'rat','子鼠':'rat','鼠年':'rat',
   '牛':'ox','水牛':'ox','黄牛':'ox','丑牛':'ox','牛年':'ox',
@@ -42,25 +41,25 @@ const ZODIAC_KW = {
 
 const DREAM_KW = {
   // English
-  dragon:'dragon', fish:'fish', bird:'bird', birds:'bird',
+  dragon:'dragon', 'drag on':'dragon', fish:'fish', goldfish:'fish', bird:'bird', birds:'bird',
   tiger:'tiger', snake:'snake', rabbit:'rabbit', bunny:'rabbit',
-  water:'water', sea:'water', ocean:'water', river:'water', rain:'water', flood:'water', lake:'water', waterfall:'water',
-  fire:'fire', flame:'fire', flames:'fire', burning:'fire', blaze:'fire',
-  mountain:'mountain', hill:'mountain', hills:'mountain', mountains:'mountain',
-  rainbow:'rainbow',
-  lightning:'lightning', thunder:'lightning', storm:'lightning', thunderstorm:'lightning',
-  moon:'moon', lunar:'moon', moonlight:'moon',
-  gold:'gold', money:'gold', cash:'gold', wealth:'gold', rich:'gold', coins:'gold', riches:'gold', treasure:'gold',
-  gems:'gems', gem:'gems', jewel:'gems', jewels:'gems', diamond:'gems', diamonds:'gems', crystal:'gems', jade:'gems',
-  car:'car', vehicle:'car', drive:'car', driving:'car',
-  house:'house', home:'house', building:'house', mansion:'house', apartment:'house',
+  water:'water', sea:'water', ocean:'water', river:'water', rain:'water', flood:'water', lake:'water', waterfall:'water', 'water fall':'water', pond:'water', wave:'water', waves:'water',
+  fire:'fire', flame:'fire', flames:'fire', burning:'fire', blaze:'fire', bonfire:'fire',
+  mountain:'mountain', hill:'mountain', hills:'mountain', mountains:'mountain', cliff:'mountain', peak:'mountain',
+  rainbow:'rainbow', 'rain bow':'rainbow',
+  lightning:'lightning', thunder:'lightning', storm:'lightning', thunderstorm:'lightning', 'thunder storm':'lightning', lightening:'lightning',
+  moon:'moon', lunar:'moon', moonlight:'moon', 'full moon':'moon',
+  gold:'gold', golden:'gold', money:'gold', cash:'gold', wealth:'gold', rich:'gold', coins:'gold', riches:'gold', treasure:'gold', dollar:'gold', dollars:'gold',
+  gems:'gems', gem:'gems', jewel:'gems', jewels:'gems', jewelry:'gems', jewellery:'gems', diamond:'gems', diamonds:'gems', crystal:'gems', jade:'gems', ruby:'gems', pearl:'gems',
+  car:'car', vehicle:'car', drive:'car', driving:'car', truck:'car', motorbike:'car',
+  house:'house', home:'house', building:'house', mansion:'house', apartment:'house', flat:'house', condo:'house',
   wedding:'wedding', married:'wedding', marry:'wedding', marriage:'wedding', bride:'wedding', groom:'wedding',
-  baby:'baby', infant:'baby', newborn:'baby',
-  ancestor:'ancestor', ancestors:'ancestor', grandparent:'ancestor', grandparents:'ancestor', grandpa:'ancestor', grandma:'ancestor',
+  baby:'baby', infant:'baby', newborn:'baby', pregnant:'baby', pregnancy:'baby',
+  ancestor:'ancestor', ancestors:'ancestor', grandparent:'ancestor', grandparents:'ancestor', grandpa:'ancestor', grandma:'ancestor', funeral:'ancestor',
   stranger:'stranger', strangers:'stranger',
-  celebrity:'celebrity', famous:'celebrity', star:'celebrity', idol:'celebrity',
+  celebrity:'celebrity', famous:'celebrity', star:'celebrity', idol:'celebrity', actor:'celebrity', singer:'celebrity',
   child:'child', kid:'child', children:'child', kids:'child', toddler:'child',
-  lover:'lover', girlfriend:'lover', boyfriend:'lover', partner:'lover', husband:'lover', wife:'lover', sweetheart:'lover',
+  lover:'lover', girlfriend:'lover', boyfriend:'lover', partner:'lover', husband:'lover', wife:'lover', sweetheart:'lover', 'girl friend':'lover', 'boy friend':'lover',
   boss:'boss', manager:'boss', employer:'boss', supervisor:'boss',
   // Mandarin
   '鱼':'fish','魚':'fish','鱼儿':'fish','金鱼':'fish','大鱼':'fish',
@@ -85,49 +84,12 @@ const DREAM_KW = {
   '老板':'boss','上司':'boss','经理':'boss','领导':'boss','主管':'boss',
 }
 
-const MOOD_KW = {
-  // English
-  lucky:'lucky', luck:'lucky', fortunate:'lucky',
-  hopeful:'hopeful', hope:'hopeful', optimistic:'hopeful',
-  dreamy:'dreamy', daydream:'dreamy',
-  adventurous:'adventurous', adventure:'adventurous', brave:'adventurous', daring:'adventurous',
-  calm:'calm', relaxed:'calm', serene:'calm', chill:'calm',
-  excited:'excited', happy:'excited', joyful:'excited', energetic:'excited', great:'excited',
-  spiritual:'spiritual',
-  grateful:'grateful', thankful:'grateful', gratitude:'grateful',
-  confident:'confident', sure:'confident', bold:'confident',
-  romantic:'romantic', loving:'romantic',
-  anxious:'anxious', worried:'anxious', nervous:'anxious', stressed:'anxious', stress:'anxious',
-  blessed:'blessed', bless:'blessed',
-  nostalgic:'nostalgic',
-  determined:'determined', focused:'determined', motivated:'determined',
-  peaceful:'peaceful',
-  mysterious:'mysterious', mystery:'mysterious', curious:'mysterious',
-  // Mandarin
-  '幸运':'lucky','運氣':'lucky','运气':'lucky','好运':'lucky','走运':'lucky','幸運':'lucky','旺':'lucky',
-  '希望':'hopeful','盼望':'hopeful','乐观':'hopeful','期待':'hopeful',
-  '梦幻':'dreamy','梦想':'dreamy','幻想':'dreamy','发梦':'dreamy',
-  '冒险':'adventurous','勇敢':'adventurous','大胆':'adventurous','探险':'adventurous',
-  '平静':'calm','放松':'calm','冷静':'calm','安静':'calm','淡定':'calm',
-  '兴奋':'excited','开心':'excited','快乐':'excited','高兴':'excited','激动':'excited','兴奋':'excited',
-  '灵性':'spiritual','修行':'spiritual',
-  '感恩':'grateful','感激':'grateful','感谢':'grateful',
-  '自信':'confident','有信心':'confident',
-  '浪漫':'romantic','爱情':'romantic',
-  '焦虑':'anxious','担心':'anxious','紧张':'anxious','不安':'anxious','忧虑':'anxious','压力':'anxious',
-  '幸福':'blessed','有福':'blessed','福气':'blessed','蒙福':'blessed',
-  '怀念':'nostalgic','思念':'nostalgic','怀旧':'nostalgic','想念':'nostalgic',
-  '坚定':'determined','专注':'determined','决心':'determined','坚决':'determined',
-  '和平':'peaceful','平和':'peaceful','宁静':'peaceful','安宁':'peaceful',
-  '神秘':'mysterious','好奇':'mysterious',
-}
-
 const HOROSCOPE_KW = {
-  aries:'aries', taurus:'taurus', gemini:'gemini', twins:'gemini',
+  aries:'aries', 'air ies':'aries', taurus:'taurus', torres:'taurus', gemini:'gemini', twins:'gemini', jiminy:'gemini',
   cancer:'cancer', leo:'leo', lion:'leo', virgo:'virgo',
-  libra:'libra', scales:'libra', scorpio:'scorpio', scorpion:'scorpio',
+  libra:'libra', libro:'libra', scales:'libra', scorpio:'scorpio', scorpion:'scorpio', scorpius:'scorpio',
   sagittarius:'sagittarius', sagittarian:'sagittarius', archer:'sagittarius',
-  capricorn:'capricorn', capricornus:'capricorn', aquarius:'aquarius', pisces:'pisces',
+  capricorn:'capricorn', capricornus:'capricorn', aquarius:'aquarius', pisces:'pisces', pieces:'pisces',
   '白羊':'aries','牡羊':'aries','金牛':'taurus','双子':'gemini','雙子':'gemini',
   '巨蟹':'cancer','狮子':'leo','獅子':'leo','处女':'virgo','處女':'virgo',
   '天秤':'libra','天平':'libra','天蝎':'scorpio','天蠍':'scorpio',
@@ -138,12 +100,12 @@ const HOROSCOPE_KW = {
 const GAME_KW = {
   // 4D
   '4d':'4d', '4-d':'4d', '4 d':'4d',
-  'four d':'4d', 'four dee':'4d', 'four digit':'4d', 'four digits':'4d',
-  'for d':'4d', 'for dee':'4d', 'ford':'4d',
+  'four d':'4d', 'four dee':'4d', 'four digit':'4d', 'four digits':'4d', 'four day':'4d', '4 day':'4d', 'four days':'4d',
+  'for d':'4d', 'for dee':'4d', 'ford':'4d', 'fourd':'4d', 'foured':'4d',
   '四维':'4d','四維':'4d',
   // TOTO
   'toto':'toto', 'lotto':'toto', 'lottery':'toto',
-  'to to':'toto', 'toe toe':'toto',
+  'to to':'toto', 'toe toe':'toto', 'tota':'toto', 'totto':'toto',
   '多多':'toto','多多博彩':'toto',
   // Both
   'both':'both', 'all':'both', 'everything':'both',
@@ -180,7 +142,23 @@ function normalizeTranscript(raw) {
        .replace(/[三叁參]/g, '3').replace(/[五伍]/g, '5').replace(/[六陆陸]/g, '6')
        .replace(/[七柒]/g, '7').replace(/[八捌]/g, '8').replace(/[九玖]/g, '9')
 
-  return s.toLowerCase()
+  return appendSingulars(s.toLowerCase())
+}
+
+// Append singular forms of plural English words so "dragons", "tigers",
+// "houses", "puppies" still match the singular keywords. We only ADD forms
+// (never remove the originals), so this can't lose information. Stripping to a
+// distinct stem ("cares" → "care", not "car") keeps it from creating false hits.
+function appendSingulars(lower) {
+  const extra = []
+  for (const w of lower.split(/[^a-z0-9]+/)) {
+    if (w.length < 4) continue
+    let sg = null
+    if (/ies$/.test(w))                      sg = w.slice(0, -3) + 'y'   // puppies → puppy
+    else if (/s$/.test(w) && !/ss$/.test(w)) sg = w.slice(0, -1)          // cars → car, houses → house
+    if (sg && sg !== w && sg.length >= 2) extra.push(sg)
+  }
+  return extra.length ? `${lower} ${extra.join(' ')}` : lower
 }
 
 // ── Matching ───────────────────────────────────────────────────────────────────
@@ -227,26 +205,23 @@ export function parseVoiceInput(transcript) {
   const dreamIds    = allMatches(DREAM_KW, lower)
   const dreams      = dreamIds.map(id => ALL_DREAMS.find(d => d.id === id)).filter(Boolean)
 
-  const moodId      = firstMatch(MOOD_KW, lower)
-  const mood        = moodId ? moods.find(m => m.id === moodId) || null : null
-
   const gameType    = firstMatch(GAME_KW, lower)
 
-  return { zodiac, horoscope, dreams, mood, gameType, transcript }
+  return { zodiac, horoscope, dreams, gameType, transcript }
 }
 
 // ── Example phrases for the UI prompt ────────────────────────────────────────
 
 export const VOICE_EXAMPLES = {
   en: [
-    'I am a Dragon, feeling lucky',
-    'I dreamt of water and gold',
+    'I am a Dragon, dreamed of water',
+    'I dreamt of gold and fish',
     'Generate TOTO numbers for me',
     'I am a Scorpio, dreamed of fire',
   ],
   zh: [
-    '我属龙，感觉很幸运',
-    '我梦见了水和黄金',
+    '我属龙，梦见了水',
+    '我梦见了黄金和鱼',
     '帮我生成多多号码',
     '我是天蝎座，梦见了火',
   ],
